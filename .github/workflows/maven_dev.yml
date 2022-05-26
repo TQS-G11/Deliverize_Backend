@@ -23,7 +23,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build DB
-      run: docker-compose -f "./docker_compose.yml" up -d --build db
+      run: docker-compose -f "/docker_compose.yml" up -d --build db
       # Wait for DB to be up
     - name: Sleep for 30 seconds
       uses: jakejarvis/wait-action@master
