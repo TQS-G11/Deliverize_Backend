@@ -1,0 +1,67 @@
+version: '2.1'
+services:
+  db:
+    image: mysql
+    container_name: db
+    #restart: always
+    environment:
+        DB_SERVER_PORT: 3306
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_HOST: 'docker-mysql'
+        MYSQL_USER: 'user'
+        MYSQL_DB: 'deliverize'
+    healthcheck:
+      test: ["CMD-SHELL", 'mysqladmin ping']
+      interval: 10s
+      timeout: 2s
+      retries: 3
+    ports:
+      # <Port exposed> : < MySQL Port running inside container>
+      - '3306:3306'
+    expose:
+      - '3306'
+    #volumes:
+    #  - ./.docker-volumes/mysql/db_data:/var/lib/mysql
+
+  #db_init:
+  #   depends_on:
+  #     api:
+  #       condition: service_healthy
+  #   container_name: 'init_db'
+  #   build: ./db_initializer/.
+  #   command: python3 -u /usr/initialize_db.py
+ 
+  
+  #mvn_app:
+  #  build:
+  #    context: ./api
+  #    args:
+  #      LOCAL_ENV: true
+  #  volumes:
+  #    - ./target/api.war:/usr/local/tomcat/webapps/api.war
+
+  app:
+    container_name: deliverize_backend
+    image: maven-app:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      db:
+        condition: service_healthy
+
+    command: ["./mvnw","verify"]
+    environment:
+      - spring.datasource.url=jdbc:mysql://db:3306/mysql
+      - spring.datasource.username=root
+      - spring.datasource.password=root
+      - spring.jpa.database-platform=org.hibernate.dialect.MySQL5InnoDBDialect
+      - spring.jpa.hibernate.ddl-auto=update
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 5
+ 
