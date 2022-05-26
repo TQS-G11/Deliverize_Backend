@@ -32,6 +32,5 @@ jobs:
         cache: maven
  
     - name: Build and Run Tests
-      run: docker-compose up --build -f "docker_compose_tests.yml"
-    - name: Healthcheck
-      run: docker run --network container:webapp-frontend appropriate/curl -s --retry 10 --retry-connrefused http://localhost:8080/
+      run: docker-compose -f "docker_compose_tests.yml" up --build 
+   
