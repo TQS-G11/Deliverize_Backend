@@ -30,7 +30,8 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
- 
+    - name: Where am I
+      run: ls -la | pwd
     - name: Build and Run Tests
       run: docker-compose -f "docker_compose_tests.yml" up --build 
    
