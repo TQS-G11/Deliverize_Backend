@@ -37,7 +37,7 @@ public class UsersController {
             re.addError("Password field cannot be blank.");
         if (userDto.getPassword().length() < 8)
             re.addError("Password must be at least 8 characters long.");
-        if (!usersService.isUsernameUnique(userDto.getUsername()))
+        if (!usersService.usernameAvailable(userDto.getUsername()))
             re.addError("A user with the provided username already exists.");
         if (!UserRoles.validRole(userDto.getRole()))
             re.addError("Invalid role.");

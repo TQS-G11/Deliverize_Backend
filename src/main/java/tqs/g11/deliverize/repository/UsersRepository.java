@@ -8,4 +8,5 @@ import tqs.g11.deliverize.model.User;
 public interface UsersRepository extends JpaRepository<User, Long> {
     User findByUsername(String username);
     User findByUsernameAndPassword(String username, String password);
+
 }
