@@ -7,11 +7,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import tqs.g11.deliverize.dto.UserDto;
+import tqs.g11.deliverize.enums.UserRoles;
 import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.repository.UsersRepository;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -23,7 +25,13 @@ public class UsersService implements UserDetailsService {
         return usersRepository.findAll();
     }
 
+    public Optional<User> getUserById(Long id) {
+        return usersRepository.getUserById(id);
+    }
+
     public User createUser(UserDto userDto) {
+
+
         return usersRepository.save(new User(userDto));
     }
 
@@ -35,7 +43,7 @@ public class UsersService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = usersRepository.findByUsername(username);
         if (user == null)
-            throw new UsernameNotFoundException("User iwth such username does not exist.");
+            throw new UsernameNotFoundException("User with such username does not exist.");
         return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), getAuthority(user));
     }
 

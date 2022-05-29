@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import tqs.g11.deliverize.dto.UserDto;
+import tqs.g11.deliverize.enums.CompanyStatus;
 import tqs.g11.deliverize.enums.UserRoles;
 
 import javax.persistence.*;
@@ -39,11 +40,16 @@ public class User {
     @Setter
     private String role;
 
+    @Getter
+    @Setter
+    private String companyStatus;
+
     public User(UserDto dto) {
         username = dto.getUsername();
         name = dto.getName();
         password = dto.getPassword();
         role = dto.getRole();
+        companyStatus = (dto.getRole().equals("COMPANY") ? CompanyStatus.PENDING : CompanyStatus.NOT_COMPANY).toString();
     }
 
     public User(String username, String name, String password, UserRoles role) {
