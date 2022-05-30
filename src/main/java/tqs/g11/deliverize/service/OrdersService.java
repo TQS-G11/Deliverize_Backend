@@ -13,6 +13,7 @@ import tqs.g11.deliverize.model.Order;
 import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.repository.OrdersRepository;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +34,10 @@ public class OrdersService {
             String notes,
             String deliveryStatus,
             String origin,
-            Double price
+            Double price,
+            LocalDateTime requestedAt,
+            LocalDateTime acceptedAt,
+            LocalDateTime deliveredAt
     ) {
         OrdersRE re = new OrdersRE();
 
@@ -45,7 +49,8 @@ public class OrdersService {
             re.addError("Rider with provided ID not found.");
 
         if (re.getErrors().isEmpty()) {
-            re.setOrders(ordersRepository.findOrders(id, company.get(), rider.get(), buyer, destination, notes, deliveryStatus, origin, price));
+            re.setOrders(ordersRepository.findOrders(id, company.get(), rider.get(), buyer, destination, notes,
+                    deliveryStatus, origin, price, requestedAt, acceptedAt, deliveredAt));
             return ResponseEntity.ok().body(re);
         }
 

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import tqs.g11.deliverize.model.Order;
 import tqs.g11.deliverize.model.User;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -21,7 +22,10 @@ public interface OrdersRepository extends JpaRepository<Order, Long> {
                     + "(:notes is null or order.notes = :notes) and "
                     + "(:deliveryStatus is null or order.deliveryStatus = :deliveryStatus) and "
                     + "(:origin is null or order.origin = :origin) and"
-                    + "(:price is null or order.price = :price)"
+                    + "(:price is null or order.price = :price) and"
+                    + "(:requestedAt is null or order.requestedAt = :requestedAt) and"
+                    + "(:acceptedAt is null or order.acceptedAt = :acceptedAt) and"
+                    + "(:deliveredAt is null or order.deliveredAt = :deliveredAt)"
     )
     public List<Order> findOrders(
             @Param("id") Long id,
@@ -32,6 +36,9 @@ public interface OrdersRepository extends JpaRepository<Order, Long> {
             @Param("notes") String notes,
             @Param("deliveryStatus") String deliveryStatus,
             @Param("origin") String origin,
-            @Param("price") Double price
+            @Param("price") Double price,
+            @Param("requestedAt") LocalDateTime requestedAt,
+            @Param("acceptedAt") LocalDateTime acceptedAt,
+            @Param("deliveredAt") LocalDateTime deliveredAt
     );
 }

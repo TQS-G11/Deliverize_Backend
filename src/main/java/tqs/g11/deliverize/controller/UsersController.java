@@ -17,14 +17,11 @@ import tqs.g11.deliverize.service.UsersService;
 @CrossOrigin("*")
 @RequestMapping("/api/users")
 public class UsersController {
-    @Autowired
-    private UsersService usersService;
+    private final UsersService usersService;
 
-    @Autowired
-    private AuthenticationManager authManager;
+    private final AuthenticationManager authManager;
 
-    @Autowired
-    private TokenProvider jwtTokenUtil;
+    private final TokenProvider jwtTokenUtil;
 
     @PostMapping("signup")
     public ResponseEntity<SignupRE> signup(@RequestBody UserDto userDto) {
@@ -68,5 +65,11 @@ public class UsersController {
             re.addError("Invalid credentials.");
             return ResponseEntity.badRequest().body(re);
         }
+    }
+
+    public UsersController(UsersService usersService, AuthenticationManager authManager, TokenProvider jwtTokenUtil) {
+        this.usersService = usersService;
+        this.authManager = authManager;
+        this.jwtTokenUtil = jwtTokenUtil;
     }
 }

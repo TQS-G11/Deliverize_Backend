@@ -7,6 +7,8 @@ import lombok.Setter;
 import tqs.g11.deliverize.model.Order;
 import tqs.g11.deliverize.model.User;
 
+import java.time.LocalDateTime;
+
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderDto {
@@ -46,15 +48,50 @@ public class OrderDto {
     @Setter
     private Double price;
 
+    @Getter
+    @Setter
+    private LocalDateTime requestedAt;
+
+    @Getter
+    @Setter
+    private LocalDateTime acceptedAt;
+
+    @Getter
+    @Setter
+    private LocalDateTime deliveredAt;
+
+    @Getter
+    @Setter
+    private Double driverLat;
+
+    @Getter
+    @Setter
+    private Double driverLon;
+
+    @Getter
+    @Setter
+    private Double storeLat;
+
+    @Getter
+    @Setter
+    private Double storeLon;
+
     public OrderDto(Order order) {
-        this.id = order.getId();
-        this.company = order.getCompany();
-        this.rider = order.getRider();
-        this.buyer = order.getBuyer();
-        this.destination = order.getDestination();
-        this.notes = order.getNotes();
-        this.deliveryStatus = order.getDeliveryStatus();
-        this.origin = order.getOrigin();
-        this.price = order.getPrice();
+        id = order.getId();
+        company = order.getCompany();
+        rider = order.getRider();
+        buyer = order.getBuyer();
+        destination = order.getDestination();
+        notes = order.getNotes();
+        deliveryStatus = order.getDeliveryStatus();
+        origin = order.getOrigin();
+        price = order.getPrice();
+        requestedAt = order.getRequestedAt();
+        acceptedAt = order.getAcceptedAt();
+        deliveredAt = order.getDeliveredAt();
+        driverLat = order.getDriverLat();
+        driverLon = order.getDriverLon();
+        storeLat = order.getStoreLat();
+        storeLon = order.getStoreLon();
     }
 }

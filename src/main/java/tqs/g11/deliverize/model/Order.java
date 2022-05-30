@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import tqs.g11.deliverize.dto.OrderDto;
 import tqs.g11.deliverize.enums.DeliveryStatus;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "app_orders")
 @NoArgsConstructor
@@ -68,6 +70,48 @@ public class Order {
     @Getter
     @Setter
     private Double price;
+
+    @Schema(description = "Time of request")
+    @Column(name = "requestedAt", nullable = false)
+    @Getter
+    @Setter
+    private LocalDateTime requestedAt;
+
+    @Schema(description = "Time of acceptance by rider")
+    @Column(name = "acceptedAt")
+    @Getter
+    @Setter
+    private LocalDateTime acceptedAt;
+
+    @Schema(description = "Time delivered at")
+    @Column(name = "deliveredAt")
+    @Getter
+    @Setter
+    private LocalDateTime deliveredAt;
+
+    @Schema(description = "Latitude of the driver")
+    @Column(name = "driverLat")
+    @Getter
+    @Setter
+    private Double driverLat;
+
+    @Schema(description = "Longitude of the driver")
+    @Column(name = "driverLon")
+    @Getter
+    @Setter
+    private Double driverLon;
+
+    @Schema(description = "Latitude of the store to be picked up from")
+    @Column(name = "storeLat")
+    @Getter
+    @Setter
+    private Double storeLat;
+
+    @Schema(description = "Longitude of the store to be picked up from")
+    @Column(name = "driverLon")
+    @Getter
+    @Setter
+    private Double storeLon;
 
     public Order(OrderDto orderDto) {
         this.company = orderDto.getCompany();

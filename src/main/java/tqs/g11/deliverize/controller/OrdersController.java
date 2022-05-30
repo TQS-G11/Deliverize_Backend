@@ -9,9 +9,11 @@ import tqs.g11.deliverize.dto.OrderDto;
 import tqs.g11.deliverize.dto.OrdersRE;
 import tqs.g11.deliverize.service.OrdersService;
 
+import java.time.LocalDateTime;
+
 @RestController
 @CrossOrigin("*")
-@RequestMapping("/api/orders")
+@RequestMapping("/api/deliveries")
 public class OrdersController {
     private final OrdersService ordersService;
 
@@ -26,9 +28,13 @@ public class OrdersController {
             String notes,
             String deliveryStatus,
             String origin,
-            Double price
+            Double price,
+            LocalDateTime requestedAt,
+            LocalDateTime acceptedAt,
+            LocalDateTime deliveredAt
     ) {
-        return ordersService.findOrders(id, companyId, riderId, buyer, destination, notes, deliveryStatus, origin, price);
+        return ordersService.findOrders(id, companyId, riderId, buyer, destination, notes, deliveryStatus, origin,
+                price, requestedAt, acceptedAt, deliveredAt);
     }
 
     @PostMapping("")

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import tqs.g11.deliverize.dto.UserDto;
 import tqs.g11.deliverize.enums.CompanyStatus;
+import tqs.g11.deliverize.enums.RiderStatus;
 import tqs.g11.deliverize.enums.UserRoles;
 
 import javax.persistence.*;
@@ -44,12 +45,26 @@ public class User {
     @Setter
     private String companyStatus;
 
+    @Getter
+    @Setter
+    private String riderStatus;
+
+    @Getter
+    @Setter
+    private Double riderRating;
+
     public User(UserDto dto) {
         username = dto.getUsername();
         name = dto.getName();
         password = dto.getPassword();
         role = dto.getRole();
-        companyStatus = (dto.getRole().equals("COMPANY") ? CompanyStatus.PENDING : CompanyStatus.NOT_COMPANY).toString();
+        companyStatus = (dto.getRole().equals(UserRoles.COMPANY.toString()) ?
+                CompanyStatus.PENDING : CompanyStatus.NOT_COMPANY).toString();
+        if (dto.getRole().equals(UserRoles.RIDER.toString())) {
+            riderStatus = RiderStatus.FREE.toString();
+            riderRating = .0;
+        } else
+            riderStatus = RiderStatus.NOT_RIDER.toString();
     }
 
     public User(String username, String name, String password, UserRoles role) {
@@ -57,5 +72,12 @@ public class User {
         this.name = name;
         this.password = password;
         this.role = role.toString();
+        companyStatus = (role.equals(UserRoles.COMPANY) ?
+                CompanyStatus.PENDING : CompanyStatus.NOT_COMPANY).toString();
+        if (role.equals(UserRoles.RIDER)) {
+            riderStatus = RiderStatus.FREE.toString();
+            riderRating = .0;
+        } else
+            riderStatus = RiderStatus.NOT_RIDER.toString();
     }
 }

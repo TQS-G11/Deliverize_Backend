@@ -1,14 +1,14 @@
 package tqs.g11.deliverize.enums;
 
-public enum DeliveryStatus {
-    REQUESTED("REQUESTED"),
+public enum RiderStatus {
+    FREE("FREE"),
     FETCHING("FETCHING"),
     DELIVERING("DELIVERING"),
-    DELIVERED("DELIVERED");
+    NOT_RIDER("NOT_RIDER");
 
     private final String status;
 
-    DeliveryStatus(String status) {
+    RiderStatus(String status) {
         this.status = status;
     }
 
