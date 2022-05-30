@@ -13,15 +13,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-  #  services:
-  #    # Label used to access the service container
-  #    mysql:
-  #      # Docker Hub image
-  #      image: mysql
-  #      #
-  #      ports:
-  #       # Opens tcp port 6379 on the host and service container
-  #        - 3306:3306
+    
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 17
@@ -31,10 +23,9 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build and Run Tests
-      run: docker-compose -f "docker_compose_test.yml" up --build -d
-    - name: Get test result
-      run: docker-compose logs -f app
+      run: docker-compose -f "docker_compose_test.yml" up --build  --exit-code-from app
     - name: Stop containers
       if: always()
       run: docker-compose down
    
+
