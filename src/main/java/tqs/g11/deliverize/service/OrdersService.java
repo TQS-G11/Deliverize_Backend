@@ -1,5 +1,6 @@
 package tqs.g11.deliverize.service;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
@@ -62,6 +63,7 @@ public class OrdersService {
         return ResponseEntity.badRequest().body(re);
     }
 
+
     public ResponseEntity<CreateOrderRE> companyCreateOrder(Authentication auth, OrderDto dto) {
         User company = usersService.getAuthUser((UserDetails) auth.getPrincipal());
         dto.setCompany(company);
@@ -82,11 +84,12 @@ public class OrdersService {
         if (re.getErrors().isEmpty()) {
             Order order = ordersRepository.save(new Order(dto));
             re.setOrderDto(new OrderDto(order));
-            return ResponseEntity.ok().body(re);
+            return ResponseEntity.status(HttpStatus.CREATED).body(re);
         }
 
         return ResponseEntity.badRequest().body(re);
     }
+
 
     public ResponseEntity<AcceptOrderRE> riderAcceptOrder(Authentication auth, Long orderId) {
         AcceptOrderRE re = new AcceptOrderRE();
@@ -108,10 +111,13 @@ public class OrdersService {
             order.setAcceptedAt(LocalDateTime.now());
             ordersRepository.save(order);
             rider.setRiderStatus(RiderStatus.FETCHING.toString());
+            re.setOrderDto(new OrderDto(order));
+            return ResponseEntity.status(HttpStatus.CREATED).body(re);
         }
 
         return ResponseEntity.badRequest().body(re);
     }
+
 
     public ResponseEntity<AcceptOrderRE> riderUpdateCurrentOrderStatus(Authentication auth) {
         AcceptOrderRE re = new AcceptOrderRE();
@@ -132,8 +138,9 @@ public class OrdersService {
             rider.setRiderStatus(RiderStatus.FREE.toString());
         }
 
-        return ResponseEntity.ok().body(re);
+        return ResponseEntity.status(HttpStatus.CREATED).body(re);
     }
+
 
     public ResponseEntity<RatingRE> companyRateRider(Authentication auth, Double rating, Long orderId) {
         RatingRE re = new RatingRE();
@@ -152,13 +159,11 @@ public class OrdersService {
             re.setRatingDto(new RatingDto(rating, orderId));
             assert order != null;
             order.setRiderRating(rating);
-            return ResponseEntity.ok().body(re);
+            return ResponseEntity.status(HttpStatus.CREATED).body(re);
         }
 
         return ResponseEntity.badRequest().body(re);
-
     }
-
 
     private Order findOrderById(Long id) {
         ResponseEntity<OrdersRE> ordersRE = managerFindOrders(id, null, null, null, null,

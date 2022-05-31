@@ -1,13 +1,11 @@
 package tqs.g11.deliverize.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import tqs.g11.deliverize.dto.UserDto;
-import tqs.g11.deliverize.enums.UserRoles;
 import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.repository.UsersRepository;
 
@@ -18,8 +16,11 @@ import java.util.Set;
 
 @Service
 public class UsersService implements UserDetailsService {
-    @Autowired
-    private UsersRepository usersRepository;
+    private final UsersRepository usersRepository;
+
+    public UsersService(UsersRepository usersRepository) {
+        this.usersRepository = usersRepository;
+    }
 
     public List<User> getAllUsers() {
         return usersRepository.findAll();

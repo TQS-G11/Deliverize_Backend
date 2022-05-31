@@ -1,13 +1,12 @@
 package tqs.g11.deliverize;
 
-import org.aspectj.weaver.ast.Or;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import tqs.g11.deliverize.dto.OrderDto;
@@ -67,13 +66,12 @@ class OrdersServiceTests {
 
 
     @Test
-    @WithMockUser(username = "manager", roles = {"MANAGER"})
     void testManagerGetOrdersAsManager() {
         ResponseEntity<OrdersRE> re = ordersService.managerFindOrders(
                 null, null, null, null, null, null, null,
                 null, null, null, null, null
         );
-        assertThat(re.getStatusCode().is2xxSuccessful(), equalTo(true));
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.OK));
         assertThat(Objects.requireNonNull(re.getBody()).getOrders(), equalTo(orders));
         assertThat(re.getBody().getErrors().isEmpty(), equalTo(true));
     }
