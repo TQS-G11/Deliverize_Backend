@@ -108,19 +108,26 @@ public class Order {
     private Double storeLat;
 
     @Schema(description = "Longitude of the store to be picked up from")
-    @Column(name = "driverLon")
+    @Column(name = "storeLon")
     @Getter
     @Setter
     private Double storeLon;
 
+    @Schema(description = "Rating awarded to the rider for the order.")
+    @Column(name = "riderRating")
+    @Getter
+    @Setter
+    private Double riderRating;
+
     public Order(OrderDto orderDto) {
-        this.company = orderDto.getCompany();
-        this.rider = null;
-        this.buyer = orderDto.getBuyer();
-        this.destination = orderDto.getDestination();
-        this.notes = orderDto.getNotes();
-        this.deliveryStatus = DeliveryStatus.REQUESTED.toString();
-        this.origin = orderDto.getOrigin();
-        this.price = orderDto.getPrice();
+        company = orderDto.getCompany();
+        rider = null;
+        buyer = orderDto.getBuyer();
+        destination = orderDto.getDestination();
+        notes = orderDto.getNotes();
+        deliveryStatus = DeliveryStatus.REQUESTED.toString();
+        origin = orderDto.getOrigin();
+        price = orderDto.getPrice();
+        riderRating = orderDto.getRiderRating();
     }
 }

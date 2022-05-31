@@ -76,6 +76,10 @@ public class OrderDto {
     @Setter
     private Double storeLon;
 
+    @Getter
+    @Setter
+    private Double riderRating;
+
     public OrderDto(Order order) {
         id = order.getId();
         company = order.getCompany();
@@ -93,5 +97,6 @@ public class OrderDto {
         driverLon = order.getDriverLon();
         storeLat = order.getStoreLat();
         storeLon = order.getStoreLon();
+        riderRating = order.getRiderRating();
     }
 }

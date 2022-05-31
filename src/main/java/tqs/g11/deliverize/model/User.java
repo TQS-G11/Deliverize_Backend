@@ -53,11 +53,16 @@ public class User {
     @Setter
     private Double riderRating;
 
+    @Getter
+    @Setter
+    private Integer ratingCount;
+
     public User(UserDto dto) {
         username = dto.getUsername();
         name = dto.getName();
         password = dto.getPassword();
         role = dto.getRole();
+        ratingCount = dto.getRatingCount();
         companyStatus = (dto.getRole().equals(UserRoles.COMPANY.toString()) ?
                 CompanyStatus.PENDING : CompanyStatus.NOT_COMPANY).toString();
         if (dto.getRole().equals(UserRoles.RIDER.toString())) {
