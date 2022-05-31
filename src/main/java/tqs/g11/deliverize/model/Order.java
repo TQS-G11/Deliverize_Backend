@@ -127,7 +127,8 @@ public class Order {
         notes = orderDto.getNotes();
         deliveryStatus = DeliveryStatus.REQUESTED.toString();
         origin = orderDto.getOrigin();
-        price = orderDto.getPrice();
-        riderRating = orderDto.getRiderRating();
+        price = 5.0;
+        storeLat = orderDto.getStoreLat();
+        storeLon = orderDto.getStoreLon();
     }
 }

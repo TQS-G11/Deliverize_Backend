@@ -44,17 +44,17 @@ public class OrdersService {
     ) {
         OrdersRE re = new OrdersRE();
 
-        Optional<User> company = usersService.getUserById(companyId);
-        if (companyId != null && (company.isEmpty() || !company.get().getRole().equals(UserRoles.COMPANY.toString())))
+        Optional<User> companyOpt = usersService.getUserById(companyId);
+        if (companyId != null && (companyOpt.isEmpty() || !companyOpt.get().getRole().equals(UserRoles.COMPANY.toString())))
             re.addError("Company with provided ID not found.");
-        Optional<User> rider = usersService.getUserById(riderId);
-        if (riderId != null && (rider.isEmpty() || !rider.get().getRole().equals(UserRoles.RIDER.toString())))
+        Optional<User> riderOpt = usersService.getUserById(riderId);
+        if (riderId != null && (riderOpt.isEmpty() || !riderOpt.get().getRole().equals(UserRoles.RIDER.toString())))
             re.addError("Rider with provided ID not found.");
 
         if (re.getErrors().isEmpty()) {
-            assert company.isPresent();
-            assert rider.isPresent();
-            re.setOrders(ordersRepository.findOrders(id, company.get(), rider.get(), buyer, destination, notes,
+            User company = companyOpt.orElse(null);
+            User rider = riderOpt.orElse(null);
+            re.setOrders(ordersRepository.findOrders(id, company, rider, buyer, destination, notes,
                     deliveryStatus, origin, price, requestedAt, acceptedAt, deliveredAt));
             return ResponseEntity.ok().body(re);
         }
