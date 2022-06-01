@@ -8,8 +8,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import tqs.g11.deliverize.dto.CreateOrderRE;
 import tqs.g11.deliverize.dto.OrderDto;
 import tqs.g11.deliverize.dto.OrdersRE;
+import tqs.g11.deliverize.enums.CompanyStatus;
 import tqs.g11.deliverize.enums.DeliveryStatus;
 import tqs.g11.deliverize.enums.ErrorMsg;
 import tqs.g11.deliverize.enums.UserRoles;
@@ -19,6 +23,7 @@ import tqs.g11.deliverize.repository.OrdersRepository;
 import tqs.g11.deliverize.service.OrdersService;
 import tqs.g11.deliverize.service.UsersService;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -26,6 +31,8 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -87,6 +94,8 @@ class OrdersServiceTests {
         Arrays.asList(company, rider, rider2)
                 .forEach(usr -> when(usersService.getUserById(usr.getId())).thenReturn(Optional.of(usr)));
 
+        when(usersService.getAuthUser(any())).thenReturn(company);
+
         when(ordersRepository.findOrders(null, null, null, null, null, null,
                 null, null, null, null, null, null))
                 .thenReturn(orders);
@@ -99,6 +108,28 @@ class OrdersServiceTests {
         when(ordersRepository.findOrders(order1.getId(), null, null, null, null, null,
                 null, null, null, null, null, null))
                 .thenReturn(List.of(order1));
+
+        when(ordersRepository.save(any())).thenReturn(
+                new Order(new OrderDto(
+                        3L,
+                        company,
+                        null,
+                        "buyer",
+                        "destination",
+                        "notes",
+                        DeliveryStatus.REQUESTED.toString(),
+                        "origin",
+                        5.0,
+                        LocalDateTime.now(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        .0,
+                        .0,
+                        null
+                ))
+        );
     }
 
 
@@ -139,5 +170,42 @@ class OrdersServiceTests {
         assertThat(Objects.requireNonNull(re.getBody()).getOrders(), equalTo(List.of()));
         assertThat(re.getBody().getErrors(),
                 equalTo(List.of(ErrorMsg.COMPANY_ID_NOT_FOUND.toString(), ErrorMsg.RIDER_ID_NOT_FOUND.toString())));
+    }
+
+    @Test
+    void testCompanyCreateOrderApprovedAndValid() {
+        final String destination = "Kaer Morhen";
+        final String buyer = "Geralt of Rivia";
+        final String origin = "Zap Novigrad";
+
+        company.setCompanyStatus(CompanyStatus.APPROVED.toString());
+
+        OrderDto orderDto = new OrderDto();
+        orderDto.setBuyer(buyer);
+        orderDto.setDestination(destination);
+        orderDto.setOrigin(origin);
+
+        Authentication auth = mock(Authentication.class);
+        ResponseEntity<CreateOrderRE> re = ordersService.companyCreateOrder(auth, orderDto);
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.CREATED));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().isEmpty(), equalTo(true));
+    }
+
+    @Test
+    void testCompanyCreateOrderNotApprovedAndInvalid() {
+        OrderDto orderDto = new OrderDto();
+        orderDto.setDestination("");
+
+        Authentication auth = mock(Authentication.class);
+        ResponseEntity<CreateOrderRE> re = ordersService.companyCreateOrder(auth, orderDto);
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().containsAll(Arrays.asList(
+                ErrorMsg.COMPANY_NOT_APPROVED.toString(),
+                ErrorMsg.BUYER_NULL_OR_BLANK.toString(),
+                ErrorMsg.DESTINATION_NULL_OR_BLANK.toString(),
+                ErrorMsg.ORIGIN_NULL_OR_BLANK.toString()
+        )), equalTo(true));
     }
 }
