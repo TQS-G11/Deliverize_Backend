@@ -21,7 +21,7 @@ public interface OrdersRepository extends JpaRepository<Order, Long> {
                     + "(:destination is null or order.destination = :destination) and "
                     + "(:notes is null or order.notes = :notes) and "
                     + "(:deliveryStatus is null or order.deliveryStatus = :deliveryStatus) and "
-                    + "(:origin is null or order.origin = :origin) and"
+                    + "(:origin is null or order.origin like :origin) and"
                     + "(:price is null or order.price = :price) and"
                     + "(:requestedAt is null or order.requestedAt = :requestedAt) and"
                     + "(:acceptedAt is null or order.acceptedAt = :acceptedAt) and"

@@ -46,6 +46,7 @@ public class OrdersService {
         OrdersRE re = new OrdersRE();
 
         Optional<User> companyOpt = usersService.getUserById(companyId);
+
         if (companyId != null && (companyOpt.isEmpty() || !companyOpt.get().getRole().equals(UserRoles.COMPANY.toString())))
             re.addError("Company with provided ID not found.");
         Optional<User> riderOpt = usersService.getUserById(riderId);
