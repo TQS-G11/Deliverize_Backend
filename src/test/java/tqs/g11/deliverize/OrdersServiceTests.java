@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import tqs.g11.deliverize.dto.OrderDto;
 import tqs.g11.deliverize.dto.OrdersRE;
 import tqs.g11.deliverize.enums.DeliveryStatus;
+import tqs.g11.deliverize.enums.ErrorMsg;
 import tqs.g11.deliverize.enums.UserRoles;
 import tqs.g11.deliverize.model.Order;
 import tqs.g11.deliverize.model.User;
@@ -114,6 +115,7 @@ class OrdersServiceTests {
 
     @Test
     void testManagerGetOrdersFilters() {
+        // Filter by order1 ID
         ResponseEntity<OrdersRE> re = ordersService.managerFindOrders(order1.getId(), null, null,
                 null, null, null, null, null, null, null,
                 null, null
@@ -122,11 +124,20 @@ class OrdersServiceTests {
         assertThat(Objects.requireNonNull(re.getBody()).getOrders(), equalTo(List.of(order1)));
         assertThat(re.getBody().getErrors().isEmpty(), equalTo(true));
 
+        // Filter by multiple attributes, common to both orders
         re = ordersService.managerFindOrders(null, company.getId(), null, null, null, null,
                 DeliveryStatus.REQUESTED.toString(), "Some Zap store", 5.0, null, null,
                 null);
         assertThat(re.getStatusCode(), equalTo(HttpStatus.OK));
         assertThat(Objects.requireNonNull(re.getBody()).getOrders(), equalTo(orders));
         assertThat(re.getBody().getErrors().isEmpty(), equalTo(true));
+
+        // Invalid companyId and riderId (rider ID used as companyId, company ID used as riderId)
+        re = ordersService.managerFindOrders(null, rider.getId(), company.getId(), null, null, null,
+                null, null, null, null, null, null);
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        assertThat(Objects.requireNonNull(re.getBody()).getOrders(), equalTo(List.of()));
+        assertThat(re.getBody().getErrors(),
+                equalTo(List.of(ErrorMsg.COMPANY_ID_NOT_FOUND.toString(), ErrorMsg.RIDER_ID_NOT_FOUND.toString())));
     }
 }

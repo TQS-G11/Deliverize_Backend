@@ -7,10 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import tqs.g11.deliverize.dto.*;
-import tqs.g11.deliverize.enums.CompanyStatus;
-import tqs.g11.deliverize.enums.DeliveryStatus;
-import tqs.g11.deliverize.enums.RiderStatus;
-import tqs.g11.deliverize.enums.UserRoles;
+import tqs.g11.deliverize.enums.*;
 import tqs.g11.deliverize.model.Order;
 import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.repository.OrdersRepository;
@@ -48,10 +45,10 @@ public class OrdersService {
         Optional<User> companyOpt = usersService.getUserById(companyId);
 
         if (companyId != null && (companyOpt.isEmpty() || !companyOpt.get().getRole().equals(UserRoles.COMPANY.toString())))
-            re.addError("Company with provided ID not found.");
+            re.addError(ErrorMsg.COMPANY_ID_NOT_FOUND.toString());
         Optional<User> riderOpt = usersService.getUserById(riderId);
         if (riderId != null && (riderOpt.isEmpty() || !riderOpt.get().getRole().equals(UserRoles.RIDER.toString())))
-            re.addError("Rider with provided ID not found.");
+            re.addError(ErrorMsg.RIDER_ID_NOT_FOUND.toString());
 
         if (re.getErrors().isEmpty()) {
             User company = companyOpt.orElse(null);
@@ -72,15 +69,15 @@ public class OrdersService {
         CreateOrderRE re = new CreateOrderRE();
 
         if (!company.getCompanyStatus().equals(CompanyStatus.APPROVED.toString()))
-            re.addError("Company not approved.");
+            re.addError(ErrorMsg.COMPANY_NOT_APPROVED.toString());
         if (stringIsNullOrBlank(dto.getBuyer()))
-            re.addError("Buyer cannot be null or blank.");
+            re.addError(ErrorMsg.BUYER_NULL_OR_BLANK.toString());
         if (stringIsNullOrBlank(dto.getDestination()))
-            re.addError("Destination cannot be null or blank.");
+            re.addError(ErrorMsg.DESTINATION_NULL_OR_BLANK.toString());
         if (dto.getNotes() == null)
             dto.setNotes("");
         if (stringIsNullOrBlank(dto.getOrigin()))
-            re.addError("Origin cannot be null or blank.");
+            re.addError(ErrorMsg.ORIGIN_NULL_OR_BLANK.toString());
 
         if (re.getErrors().isEmpty()) {
             Order order = ordersRepository.save(new Order(dto));
@@ -99,11 +96,11 @@ public class OrdersService {
         Order order = findOrderById(orderId);
 
         if (!rider.getRiderStatus().equals(RiderStatus.FREE.toString()))
-            re.addError("Rider is not free.");
+            re.addError(ErrorMsg.RIDER_NOT_FREE.toString());
         if (order == null)
-            re.addError("Order with the provided ID does not exist.");
+            re.addError(ErrorMsg.ORDER_ID_NOT_FOUND.toString());
         else if (!order.getDeliveryStatus().equals(DeliveryStatus.REQUESTED.toString()))
-            re.addError("Order has already been accepted by another rider.");
+            re.addError(ErrorMsg.ORDER_ALREADY_ACCEPTED.toString());
 
         if (re.getErrors().isEmpty()) {
             assert order != null;
@@ -127,7 +124,7 @@ public class OrdersService {
         Order order = findRiderOrder(rider);
 
         if (order == null) {
-            re.addError("Rider does not have a current order.");
+            re.addError(ErrorMsg.RIDER_NO_CURRENT_ORDER.toString());
             return ResponseEntity.badRequest().body(re);
         }
 
@@ -148,13 +145,13 @@ public class OrdersService {
         User company = usersService.getAuthUser((UserDetails) auth.getPrincipal());
 
         if (!company.getCompanyStatus().equals(CompanyStatus.APPROVED.toString()))
-            re.addError("Company not approved.");
+            re.addError(ErrorMsg.COMPANY_NOT_APPROVED.toString());
 
         Order order = findOrderById(orderId);
         if (order == null)
-            re.addError("Order with the provided ID does not exist.");
+            re.addError(ErrorMsg.ORDER_ID_NOT_FOUND.toString());
         else if (order.getRiderRating() != null)
-            re.addError("Driver has already been rated for this delivery.");
+            re.addError(ErrorMsg.DRIVER_ALREADY_RATED_FOR_DELIVERY.toString());
 
         if (re.getErrors().isEmpty()) {
             re.setRatingDto(new RatingDto(rating, orderId));
