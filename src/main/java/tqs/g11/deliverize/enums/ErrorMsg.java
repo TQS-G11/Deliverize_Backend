@@ -11,7 +11,8 @@ public enum ErrorMsg {
     ORDER_ID_NOT_FOUND("Order with the provided ID does not exist."),
     ORDER_ALREADY_ACCEPTED("Order has already been accepted by another rider."),
     RIDER_NO_CURRENT_ORDER("Rider does not have a current order."),
-    DRIVER_ALREADY_RATED_FOR_DELIVERY("Driver has already been rated for this delivery.");
+    DRIVER_ALREADY_RATED_FOR_DELIVERY("Driver has already been rated for this delivery."),
+    INVALID_COMPANY_STATUS("Invalid company status.");
 
     private final String text;
 

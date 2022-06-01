@@ -130,5 +130,6 @@ public class Order {
         price = 5.0;
         storeLat = orderDto.getStoreLat();
         storeLon = orderDto.getStoreLon();
+        requestedAt = LocalDateTime.now();
     }
 }

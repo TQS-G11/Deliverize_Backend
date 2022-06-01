@@ -1,5 +1,9 @@
 package tqs.g11.deliverize.enums;
 
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public enum CompanyStatus {
     PENDING("PENDING"),
     APPROVED("APPROVED"),
@@ -19,5 +23,12 @@ public enum CompanyStatus {
 
     public boolean isApproved() {
         return this.equals(CompanyStatus.APPROVED);
+    }
+
+    public static boolean validStatus(String value) {
+        List<String> statusesNames = Stream.of(CompanyStatus.values())
+                .map(Enum::toString)
+                .collect(Collectors.toList());
+        return statusesNames.contains(value);
     }
 }

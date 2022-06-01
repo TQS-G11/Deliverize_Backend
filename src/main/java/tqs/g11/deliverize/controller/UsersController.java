@@ -2,6 +2,7 @@ package tqs.g11.deliverize.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -65,6 +66,12 @@ public class UsersController {
             re.addError("Invalid credentials.");
             return ResponseEntity.badRequest().body(re);
         }
+    }
+
+    @PreAuthorize("hasAnyRole('MANAGER')")
+    @PostMapping("change-company-status")
+    public ResponseEntity<ChangeCompanyStatusRE> managerChangeCompanyStatus(@RequestBody UserDto companyDto) {
+        return usersService.managerChangeCompanyStatus(companyDto);
     }
 
     public UsersController(UsersService usersService, AuthenticationManager authManager, TokenProvider jwtTokenUtil) {
