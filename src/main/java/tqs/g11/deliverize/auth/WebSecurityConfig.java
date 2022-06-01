@@ -51,6 +51,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/api/users/login",
                         "/api/users/signup",
+                        "/api/users/change-company-status",
                         "/api/deliveries",
                         "/api/deliveries/company",
                         "/api/deliveries/rider/accept",

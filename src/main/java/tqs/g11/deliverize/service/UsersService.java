@@ -1,11 +1,16 @@
 package tqs.g11.deliverize.service;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import tqs.g11.deliverize.dto.ChangeCompanyStatusRE;
 import tqs.g11.deliverize.dto.UserDto;
+import tqs.g11.deliverize.enums.CompanyStatus;
+import tqs.g11.deliverize.enums.ErrorMsg;
 import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.repository.UsersRepository;
 
@@ -46,6 +51,27 @@ public class UsersService implements UserDetailsService {
         if (user == null)
             throw new UsernameNotFoundException("User with such username does not exist.");
         return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), getAuthority(user));
+    }
+
+    public ResponseEntity<ChangeCompanyStatusRE> managerChangeCompanyStatus(UserDto companyDto) {
+        ChangeCompanyStatusRE re = new ChangeCompanyStatusRE();
+
+        Optional<User> companyOpt = usersRepository.getUserById(companyDto.getId());
+        User company = companyOpt.orElse(null);
+
+        if (company == null)
+            re.addError(ErrorMsg.COMPANY_ID_NOT_FOUND.toString());
+        if (!CompanyStatus.validStatus(companyDto.getCompanyStatus()))
+            re.addError(ErrorMsg.INVALID_COMPANY_STATUS.toString());
+
+        if (re.getErrors().isEmpty()) {
+            assert company != null;
+            company.setCompanyStatus(companyDto.getCompanyStatus());
+            re.setCompany(new UserDto(company));
+            return ResponseEntity.status(HttpStatus.CREATED).body(re);
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(re);
     }
 
     private Set<SimpleGrantedAuthority> getAuthority(User user) {
