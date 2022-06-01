@@ -67,6 +67,7 @@ public class UsersService implements UserDetailsService {
         if (re.getErrors().isEmpty()) {
             assert company != null;
             company.setCompanyStatus(companyDto.getCompanyStatus());
+            usersRepository.save(company);
             re.setCompany(new UserDto(company));
             return ResponseEntity.status(HttpStatus.CREATED).body(re);
         }
