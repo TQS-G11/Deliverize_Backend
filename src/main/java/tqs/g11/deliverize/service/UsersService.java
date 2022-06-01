@@ -1,6 +1,5 @@
 package tqs.g11.deliverize.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,18 +11,28 @@ import tqs.g11.deliverize.repository.UsersRepository;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
 public class UsersService implements UserDetailsService {
-    @Autowired
-    private UsersRepository usersRepository;
+    private final UsersRepository usersRepository;
+
+    public UsersService(UsersRepository usersRepository) {
+        this.usersRepository = usersRepository;
+    }
 
     public List<User> getAllUsers() {
         return usersRepository.findAll();
     }
 
+    public Optional<User> getUserById(Long id) {
+        return usersRepository.getUserById(id);
+    }
+
     public User createUser(UserDto userDto) {
+
+
         return usersRepository.save(new User(userDto));
     }
 
@@ -35,7 +44,7 @@ public class UsersService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = usersRepository.findByUsername(username);
         if (user == null)
-            throw new UsernameNotFoundException("User iwth such username does not exist.");
+            throw new UsernameNotFoundException("User with such username does not exist.");
         return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), getAuthority(user));
     }
 

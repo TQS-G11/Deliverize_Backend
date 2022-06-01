@@ -1,0 +1,211 @@
+package tqs.g11.deliverize;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import tqs.g11.deliverize.dto.CreateOrderRE;
+import tqs.g11.deliverize.dto.OrderDto;
+import tqs.g11.deliverize.dto.OrdersRE;
+import tqs.g11.deliverize.enums.CompanyStatus;
+import tqs.g11.deliverize.enums.DeliveryStatus;
+import tqs.g11.deliverize.enums.ErrorMsg;
+import tqs.g11.deliverize.enums.UserRoles;
+import tqs.g11.deliverize.model.Order;
+import tqs.g11.deliverize.model.User;
+import tqs.g11.deliverize.repository.OrdersRepository;
+import tqs.g11.deliverize.service.OrdersService;
+import tqs.g11.deliverize.service.UsersService;
+
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class OrdersServiceTests {
+    @Mock(lenient = true)
+    private OrdersRepository ordersRepository;
+
+    @InjectMocks
+    private OrdersService ordersService;
+
+    @Mock(lenient = true)
+    private UsersService usersService;
+
+    private User company;
+
+    private User rider;
+
+    private User rider2;
+
+    private Order order1;
+
+    private Order order2;
+
+    private List<Order> orders;
+
+    @BeforeEach
+    void setUp() {
+        company = new User("zap", "Zap", "companypassword", UserRoles.COMPANY);
+        company.setId(1L);
+        rider = new User("babydweet", "Dwight Fairfield", "riderpassword", UserRoles.RIDER);
+        rider.setId(2L);
+        rider2 = new User("Blendette", "Claudette Morel", "riderpassword", UserRoles.RIDER);
+        rider2.setId(3L);
+
+        OrderDto orderDto = new OrderDto();
+        orderDto.setCompany(company);
+        orderDto.setBuyer("Walter White");
+        orderDto.setDestination("308 Negra Aroya Lane, Albuquerque, New Mexico, 87104");
+        orderDto.setNotes("I am the one who knocks.");
+        orderDto.setOrigin("Some Zap store");
+        orderDto.setStoreLat(.0);
+        orderDto.setStoreLon(.0);
+        order1 = new Order(orderDto);
+        order1.setId(1L);
+
+        orderDto = new OrderDto();
+        orderDto.setCompany(company);
+        orderDto.setBuyer("Mike Ehrmantraut");
+        orderDto.setDestination("204 Edith Blvd. NE, Albuquerque, New Mexico 87102");
+        orderDto.setNotes("");
+        orderDto.setOrigin("Some Zap store");
+        orderDto.setStoreLat(.0);
+        orderDto.setStoreLon(.0);
+        order2 = new Order(orderDto);
+        order2.setId(2L);
+
+        orders = Arrays.asList(order1, order2);
+
+        Arrays.asList(company, rider, rider2)
+                .forEach(usr -> when(usersService.getUserById(usr.getId())).thenReturn(Optional.of(usr)));
+
+        when(usersService.getAuthUser(any())).thenReturn(company);
+
+        when(ordersRepository.findOrders(null, null, null, null, null, null,
+                null, null, null, null, null, null))
+                .thenReturn(orders);
+
+        when(ordersRepository.findOrders(null, company, null, null, null, null,
+                DeliveryStatus.REQUESTED.toString(), "Some Zap store", 5.0, null, null,
+                null))
+                .thenReturn(orders);
+
+        when(ordersRepository.findOrders(order1.getId(), null, null, null, null, null,
+                null, null, null, null, null, null))
+                .thenReturn(List.of(order1));
+
+        when(ordersRepository.save(any())).thenReturn(
+                new Order(new OrderDto(
+                        3L,
+                        company,
+                        null,
+                        "buyer",
+                        "destination",
+                        "notes",
+                        DeliveryStatus.REQUESTED.toString(),
+                        "origin",
+                        5.0,
+                        LocalDateTime.now(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        .0,
+                        .0,
+                        null
+                ))
+        );
+    }
+
+
+    @Test
+    void testManagerGetOrdersNoFilters() {
+        ResponseEntity<OrdersRE> re = ordersService.managerFindOrders(
+                null, null, null, null, null, null, null,
+                null, null, null, null, null
+        );
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(Objects.requireNonNull(re.getBody()).getOrders(), equalTo(orders));
+        assertThat(re.getBody().getErrors().isEmpty(), equalTo(true));
+    }
+
+    @Test
+    void testManagerGetOrdersFilters() {
+        // Filter by order1 ID
+        ResponseEntity<OrdersRE> re = ordersService.managerFindOrders(order1.getId(), null, null,
+                null, null, null, null, null, null, null,
+                null, null
+        );
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(Objects.requireNonNull(re.getBody()).getOrders(), equalTo(List.of(order1)));
+        assertThat(re.getBody().getErrors().isEmpty(), equalTo(true));
+
+        // Filter by multiple attributes, common to both orders
+        re = ordersService.managerFindOrders(null, company.getId(), null, null, null, null,
+                DeliveryStatus.REQUESTED.toString(), "Some Zap store", 5.0, null, null,
+                null);
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.OK));
+        assertThat(Objects.requireNonNull(re.getBody()).getOrders(), equalTo(orders));
+        assertThat(re.getBody().getErrors().isEmpty(), equalTo(true));
+
+        // Invalid companyId and riderId (rider ID used as companyId, company ID used as riderId)
+        re = ordersService.managerFindOrders(null, rider.getId(), company.getId(), null, null, null,
+                null, null, null, null, null, null);
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        assertThat(Objects.requireNonNull(re.getBody()).getOrders(), equalTo(List.of()));
+        assertThat(re.getBody().getErrors(),
+                equalTo(List.of(ErrorMsg.COMPANY_ID_NOT_FOUND.toString(), ErrorMsg.RIDER_ID_NOT_FOUND.toString())));
+    }
+
+    @Test
+    void testCompanyCreateOrderApprovedAndValid() {
+        final String destination = "Kaer Morhen";
+        final String buyer = "Geralt of Rivia";
+        final String origin = "Zap Novigrad";
+
+        company.setCompanyStatus(CompanyStatus.APPROVED.toString());
+
+        OrderDto orderDto = new OrderDto();
+        orderDto.setBuyer(buyer);
+        orderDto.setDestination(destination);
+        orderDto.setOrigin(origin);
+
+        Authentication auth = mock(Authentication.class);
+        ResponseEntity<CreateOrderRE> re = ordersService.companyCreateOrder(auth, orderDto);
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.CREATED));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().isEmpty(), equalTo(true));
+    }
+
+    @Test
+    void testCompanyCreateOrderNotApprovedAndInvalid() {
+        OrderDto orderDto = new OrderDto();
+        orderDto.setDestination("");
+
+        Authentication auth = mock(Authentication.class);
+        ResponseEntity<CreateOrderRE> re = ordersService.companyCreateOrder(auth, orderDto);
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().containsAll(Arrays.asList(
+                ErrorMsg.COMPANY_NOT_APPROVED.toString(),
+                ErrorMsg.BUYER_NULL_OR_BLANK.toString(),
+                ErrorMsg.DESTINATION_NULL_OR_BLANK.toString(),
+                ErrorMsg.ORIGIN_NULL_OR_BLANK.toString()
+        )), equalTo(true));
+    }
+}

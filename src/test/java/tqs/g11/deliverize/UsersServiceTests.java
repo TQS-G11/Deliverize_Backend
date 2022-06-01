@@ -9,6 +9,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import tqs.g11.deliverize.dto.UserDto;
+import tqs.g11.deliverize.enums.CompanyStatus;
+import tqs.g11.deliverize.enums.RiderStatus;
 import tqs.g11.deliverize.enums.UserRoles;
 import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.repository.UsersRepository;
@@ -52,7 +54,8 @@ class UsersServiceTests {
         Mockito.when(repo.findByUsernameAndPassword("manager1", "managerpassword")).thenReturn(manager);
         Mockito.when(repo.findAll()).thenReturn(users);
 
-        newUserDto = new UserDto(42L, "newuser", "New User", "newpassword", UserRoles.RIDER.toString());
+        newUserDto = new UserDto(42L, "newuser", "New User", "newpassword", UserRoles.RIDER.toString(),
+                CompanyStatus.NOT_COMPANY.toString(), RiderStatus.FREE.toString(), 5.0, 0);
         newUser = new User(newUserDto);
         Mockito.when(repo.save(newUser)).thenReturn(newUser);
     }

@@ -1,6 +1,6 @@
 package tqs.g11.deliverize.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,14 +17,11 @@ import tqs.g11.deliverize.service.UsersService;
 @CrossOrigin("*")
 @RequestMapping("/api/users")
 public class UsersController {
-    @Autowired
-    private UsersService usersService;
+    private final UsersService usersService;
 
-    @Autowired
-    private AuthenticationManager authManager;
+    private final AuthenticationManager authManager;
 
-    @Autowired
-    private TokenProvider jwtTokenUtil;
+    private final TokenProvider jwtTokenUtil;
 
     @PostMapping("signup")
     public ResponseEntity<SignupRE> signup(@RequestBody UserDto userDto) {
@@ -43,7 +40,7 @@ public class UsersController {
             re.addError("Invalid role.");
         if (re.getErrors().isEmpty()) {
             re.setUserDto(new UserDto(usersService.createUser(userDto)));
-            return ResponseEntity.ok().body(re);
+            return ResponseEntity.status(HttpStatus.CREATED).body(re);
         } else
             return ResponseEntity.badRequest().body(re);
     }
@@ -68,5 +65,11 @@ public class UsersController {
             re.addError("Invalid credentials.");
             return ResponseEntity.badRequest().body(re);
         }
+    }
+
+    public UsersController(UsersService usersService, AuthenticationManager authManager, TokenProvider jwtTokenUtil) {
+        this.usersService = usersService;
+        this.authManager = authManager;
+        this.jwtTokenUtil = jwtTokenUtil;
     }
 }
