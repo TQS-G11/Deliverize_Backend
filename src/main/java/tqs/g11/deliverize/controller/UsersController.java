@@ -15,7 +15,7 @@ import tqs.g11.deliverize.enums.UserRoles;
 import tqs.g11.deliverize.service.UsersService;
 
 @RestController
-@CrossOrigin("*")
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/users")
 public class UsersController {
     private final UsersService usersService;
