@@ -27,7 +27,7 @@ public interface OrdersRepository extends JpaRepository<Order, Long> {
                     + "(:acceptedAt is null or order.acceptedAt = :acceptedAt) and"
                     + "(:deliveredAt is null or order.deliveredAt = :deliveredAt)"
     )
-    public List<Order> findOrders(
+    List<Order> findOrders(
             @Param("id") Long id,
             @Param("company") User company,
             @Param("rider") User rider,
