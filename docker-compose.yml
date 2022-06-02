@@ -64,4 +64,5 @@ services:
       interval: 20s
       timeout: 5s
       retries: 5
- 
+    volumes:
+      - ./.docker-volumes/zap_app/target/:/app/target
