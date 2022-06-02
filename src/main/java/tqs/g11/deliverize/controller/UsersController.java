@@ -12,7 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import tqs.g11.deliverize.auth.TokenProvider;
 import tqs.g11.deliverize.dto.*;
 import tqs.g11.deliverize.enums.UserRoles;
+import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.service.UsersService;
+
+import java.util.List;
 
 @RestController
 @CrossOrigin("*")
@@ -78,5 +81,11 @@ public class UsersController {
         this.usersService = usersService;
         this.authManager = authManager;
         this.jwtTokenUtil = jwtTokenUtil;
+    }
+
+    @PreAuthorize("hasAnyRole('MANAGER')")
+    @GetMapping("")
+    public List<User> findUsersByRole(String role) {
+        return usersService.findUsersByRole(role);
     }
 }
