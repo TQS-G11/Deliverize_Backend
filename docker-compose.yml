@@ -49,7 +49,7 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      db:
+      deliverize_db:
         condition: service_healthy
 
     command: ["./mvnw","spring-boot:run"]
