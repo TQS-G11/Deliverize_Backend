@@ -5,11 +5,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.test.context.support.WithMockUser;
+import tqs.g11.deliverize.dto.AcceptOrderRE;
 import tqs.g11.deliverize.dto.CreateOrderRE;
 import tqs.g11.deliverize.dto.OrderDto;
 import tqs.g11.deliverize.dto.OrdersRE;
@@ -24,13 +28,10 @@ import tqs.g11.deliverize.service.OrdersService;
 import tqs.g11.deliverize.service.UsersService;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -55,6 +56,8 @@ class OrdersServiceTests {
     private Order order1;
 
     private Order order2;
+
+    private Order orderFetching;
 
     private List<Order> orders;
 
@@ -94,7 +97,7 @@ class OrdersServiceTests {
         Arrays.asList(company, rider, rider2)
                 .forEach(usr -> when(usersService.getUserById(usr.getId())).thenReturn(Optional.of(usr)));
 
-        when(usersService.getAuthUser(any())).thenReturn(company);
+//        when(usersService.getAuthUser(any())).thenReturn(company);
 
         when(ordersRepository.findOrders(null, null, null, null, null, null,
                 null, null, null, null, null, null))
@@ -108,28 +111,6 @@ class OrdersServiceTests {
         when(ordersRepository.findOrders(order1.getId(), null, null, null, null, null,
                 null, null, null, null, null, null))
                 .thenReturn(List.of(order1));
-
-        when(ordersRepository.save(any())).thenReturn(
-                new Order(new OrderDto(
-                        3L,
-                        company,
-                        null,
-                        "buyer",
-                        "destination",
-                        "notes",
-                        DeliveryStatus.REQUESTED.toString(),
-                        "origin",
-                        5.0,
-                        LocalDateTime.now(),
-                        null,
-                        null,
-                        null,
-                        null,
-                        .0,
-                        .0,
-                        null
-                ))
-        );
     }
 
 
@@ -172,8 +153,11 @@ class OrdersServiceTests {
                 equalTo(List.of(ErrorMsg.COMPANY_ID_NOT_FOUND.toString(), ErrorMsg.RIDER_ID_NOT_FOUND.toString())));
     }
 
+
     @Test
     void testCompanyCreateOrderApprovedAndValid() {
+        setUpCreateOrderTest();
+
         final String destination = "Kaer Morhen";
         final String buyer = "Geralt of Rivia";
         final String origin = "Zap Novigrad";
@@ -185,7 +169,7 @@ class OrdersServiceTests {
         orderDto.setDestination(destination);
         orderDto.setOrigin(origin);
 
-        Authentication auth = mock(Authentication.class);
+        Authentication auth = setUpUserMockAuth(company);
         ResponseEntity<CreateOrderRE> re = ordersService.companyCreateOrder(auth, orderDto);
 
         assertThat(re.getStatusCode(), equalTo(HttpStatus.CREATED));
@@ -194,10 +178,12 @@ class OrdersServiceTests {
 
     @Test
     void testCompanyCreateOrderNotApprovedAndInvalid() {
+        setUpCreateOrderTest();
+
         OrderDto orderDto = new OrderDto();
         orderDto.setDestination("");
 
-        Authentication auth = mock(Authentication.class);
+        Authentication auth = setUpUserMockAuth(company);
         ResponseEntity<CreateOrderRE> re = ordersService.companyCreateOrder(auth, orderDto);
 
         assertThat(re.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
@@ -207,5 +193,70 @@ class OrdersServiceTests {
                 ErrorMsg.DESTINATION_NULL_OR_BLANK.toString(),
                 ErrorMsg.ORIGIN_NULL_OR_BLANK.toString()
         )), equalTo(true));
+    }
+
+    @Test
+    void testRiderAcceptOrderValid() {
+        Authentication auth = setUpUserMockAuth(rider);
+        setUpAcceptOrderTest(order1, rider);
+
+        ResponseEntity<AcceptOrderRE> re = ordersService.riderAcceptOrder(auth, order1.getId());
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.CREATED));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().isEmpty(), equalTo(true));
+        OrderDto orderDto = re.getBody().getOrderDto();
+        assertThat(orderDto.getRider(), equalTo(rider));
+        assertThat(orderDto.getDeliveryStatus(), equalTo(DeliveryStatus.FETCHING.toString()));
+        assertThat(orderDto.getAcceptedAt(), notNullValue());
+    }
+
+    private Authentication setUpUserMockAuth(User user) {
+        Authentication auth = mock(Authentication.class);
+        Set<SimpleGrantedAuthority> authorities = Collections.singleton(
+                new SimpleGrantedAuthority("ROLE_" + user.getRole()));
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                user.getUsername(), user.getPassword(), authorities
+        );
+        when(auth.getPrincipal()).thenReturn(
+                new org.springframework.security.core.userdetails.User(
+                        user.getUsername(), user.getPassword(), authorities
+                )
+        );
+        when(usersService.getAuthUser(userDetails)).thenReturn(user);
+        return auth;
+    }
+
+    private void setUpCreateOrderTest() {
+        when(ordersRepository.save(any())).thenReturn(
+                new Order(new OrderDto(
+                        3L,
+                        company,
+                        null,
+                        "buyer",
+                        "destination",
+                        "notes",
+                        DeliveryStatus.REQUESTED.toString(),
+                        "origin",
+                        5.0,
+                        LocalDateTime.now(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        .0,
+                        .0,
+                        null
+                ))
+        );
+    }
+
+    private void setUpAcceptOrderTest(Order order, User rider) {
+        OrderDto dto = new OrderDto(order);
+        dto.setRider(rider);
+        dto.setDeliveryStatus(DeliveryStatus.FETCHING.toString());
+        dto.setAcceptedAt(LocalDateTime.now());
+
+
+        when(ordersRepository.save(any())).thenReturn(new Order(dto));
     }
 }
