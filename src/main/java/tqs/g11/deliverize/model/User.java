@@ -11,6 +11,7 @@ import tqs.g11.deliverize.enums.RiderStatus;
 import tqs.g11.deliverize.enums.UserRoles;
 
 import javax.persistence.*;
+import java.util.Optional;
 
 @Entity
 @Table(name = "app_users")
@@ -84,5 +85,10 @@ public class User {
             riderRating = .0;
         } else
             riderStatus = RiderStatus.NOT_RIDER.toString();
+    }
+
+    public void addRiderRating(Double rating) {
+        assert role.equals(UserRoles.RIDER.toString());
+        riderRating = (Optional.ofNullable(riderRating).orElse(.0) + rating) / ++ratingCount;
     }
 }

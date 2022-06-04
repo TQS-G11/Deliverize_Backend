@@ -12,7 +12,8 @@ public enum ErrorMsg {
     ORDER_ALREADY_ACCEPTED("Order has already been accepted by another rider."),
     RIDER_NO_CURRENT_ORDER("Rider does not have a current order."),
     DRIVER_ALREADY_RATED_FOR_DELIVERY("Driver has already been rated for this delivery."),
-    INVALID_COMPANY_STATUS("Invalid company status.");
+    INVALID_COMPANY_STATUS("Invalid company status."),
+    INVALID_RATING("Invalid rating (must be between 0 and 5).");
 
     private final String text;
 
