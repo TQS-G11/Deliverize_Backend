@@ -1,5 +1,6 @@
 package tqs.g11.deliverize.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class UserDto {
 
     @Getter
     @Setter
+    @JsonIgnoreProperties
     private String password;
 
     @Getter

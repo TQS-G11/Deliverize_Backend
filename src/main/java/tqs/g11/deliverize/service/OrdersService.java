@@ -17,6 +17,9 @@ import java.util.*;
 
 @Service
 public class OrdersService {
+    private static final Double RIDER_MIN_RATING = .0;
+    private static final Double RIDER_MAX_RATING = 5.0;
+
     private final OrdersRepository ordersRepository;
 
     private final UsersService usersService;
@@ -144,6 +147,9 @@ public class OrdersService {
         RatingRE re = new RatingRE();
         User company = usersService.getAuthUser((UserDetails) auth.getPrincipal());
 
+        if (rating < RIDER_MIN_RATING || rating > RIDER_MAX_RATING)
+            re.addError(ErrorMsg.INVALID_RATING.toString());
+
         if (!company.getCompanyStatus().equals(CompanyStatus.APPROVED.toString()))
             re.addError(ErrorMsg.COMPANY_NOT_APPROVED.toString());
 
@@ -157,6 +163,7 @@ public class OrdersService {
             re.setRatingDto(new RatingDto(rating, orderId));
             assert order != null;
             order.setRiderRating(rating);
+            order.getRider().addRiderRating(rating);
             return ResponseEntity.status(HttpStatus.CREATED).body(re);
         }
 
@@ -169,14 +176,10 @@ public class OrdersService {
         return getOrdersREOrder(ordersRE);
     }
 
-    private Order findRiderOrder(Long riderId) {
-        ResponseEntity<OrdersRE> ordersRE = managerFindOrders(null, null, riderId, null, null,
-                null, null, null, null, null, null, null);
-        return getOrdersREOrder(ordersRE);
-    }
-
     private Order findRiderOrder(User rider) {
-        return findRiderOrder(rider.getId());
+        List<Order> undeliveredOrders = getRiderUndeliveredOrders(rider);
+        assert undeliveredOrders.size() <= 1;
+        return undeliveredOrders.isEmpty() ? null : undeliveredOrders.get(0);
     }
 
     // Used when only 0 or 1 results are expected
@@ -195,4 +198,9 @@ public class OrdersService {
         return Arrays.asList(null, "").contains(string);
     }
 
+    private List<Order> getRiderUndeliveredOrders(User rider) {
+        return ordersRepository.getOrdersByRiderEqualsAndDeliveryStatusIn(rider, Arrays.asList(
+                DeliveryStatus.FETCHING.toString(), DeliveryStatus.DELIVERING.toString()
+        ));
+    }
 }

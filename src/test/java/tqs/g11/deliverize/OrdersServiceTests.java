@@ -9,14 +9,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import tqs.g11.deliverize.dto.CreateOrderRE;
-import tqs.g11.deliverize.dto.OrderDto;
-import tqs.g11.deliverize.dto.OrdersRE;
-import tqs.g11.deliverize.enums.CompanyStatus;
-import tqs.g11.deliverize.enums.DeliveryStatus;
-import tqs.g11.deliverize.enums.ErrorMsg;
-import tqs.g11.deliverize.enums.UserRoles;
+import tqs.g11.deliverize.dto.*;
+import tqs.g11.deliverize.enums.*;
 import tqs.g11.deliverize.model.Order;
 import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.repository.OrdersRepository;
@@ -24,13 +20,11 @@ import tqs.g11.deliverize.service.OrdersService;
 import tqs.g11.deliverize.service.UsersService;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -55,6 +49,8 @@ class OrdersServiceTests {
     private Order order1;
 
     private Order order2;
+
+    private Order orderFetching;
 
     private List<Order> orders;
 
@@ -94,8 +90,6 @@ class OrdersServiceTests {
         Arrays.asList(company, rider, rider2)
                 .forEach(usr -> when(usersService.getUserById(usr.getId())).thenReturn(Optional.of(usr)));
 
-        when(usersService.getAuthUser(any())).thenReturn(company);
-
         when(ordersRepository.findOrders(null, null, null, null, null, null,
                 null, null, null, null, null, null))
                 .thenReturn(orders);
@@ -108,28 +102,6 @@ class OrdersServiceTests {
         when(ordersRepository.findOrders(order1.getId(), null, null, null, null, null,
                 null, null, null, null, null, null))
                 .thenReturn(List.of(order1));
-
-        when(ordersRepository.save(any())).thenReturn(
-                new Order(new OrderDto(
-                        3L,
-                        company,
-                        null,
-                        "buyer",
-                        "destination",
-                        "notes",
-                        DeliveryStatus.REQUESTED.toString(),
-                        "origin",
-                        5.0,
-                        LocalDateTime.now(),
-                        null,
-                        null,
-                        null,
-                        null,
-                        .0,
-                        .0,
-                        null
-                ))
-        );
     }
 
 
@@ -172,8 +144,11 @@ class OrdersServiceTests {
                 equalTo(List.of(ErrorMsg.COMPANY_ID_NOT_FOUND.toString(), ErrorMsg.RIDER_ID_NOT_FOUND.toString())));
     }
 
+
     @Test
     void testCompanyCreateOrderApprovedAndValid() {
+        setUpCreateOrderTest();
+
         final String destination = "Kaer Morhen";
         final String buyer = "Geralt of Rivia";
         final String origin = "Zap Novigrad";
@@ -185,7 +160,7 @@ class OrdersServiceTests {
         orderDto.setDestination(destination);
         orderDto.setOrigin(origin);
 
-        Authentication auth = mock(Authentication.class);
+        Authentication auth = setUpUserMockAuth(company);
         ResponseEntity<CreateOrderRE> re = ordersService.companyCreateOrder(auth, orderDto);
 
         assertThat(re.getStatusCode(), equalTo(HttpStatus.CREATED));
@@ -194,10 +169,12 @@ class OrdersServiceTests {
 
     @Test
     void testCompanyCreateOrderNotApprovedAndInvalid() {
+        setUpCreateOrderTest();
+
         OrderDto orderDto = new OrderDto();
         orderDto.setDestination("");
 
-        Authentication auth = mock(Authentication.class);
+        Authentication auth = setUpUserMockAuth(company);
         ResponseEntity<CreateOrderRE> re = ordersService.companyCreateOrder(auth, orderDto);
 
         assertThat(re.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
@@ -207,5 +184,188 @@ class OrdersServiceTests {
                 ErrorMsg.DESTINATION_NULL_OR_BLANK.toString(),
                 ErrorMsg.ORIGIN_NULL_OR_BLANK.toString()
         )), equalTo(true));
+    }
+
+    @Test
+    void testRiderAcceptOrderValid() {
+        Authentication auth = setUpUserMockAuth(rider);
+        setUpAcceptOrderTest(order1, rider);
+
+        ResponseEntity<AcceptOrderRE> re = ordersService.riderAcceptOrder(auth, order1.getId());
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.CREATED));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().isEmpty(), equalTo(true));
+        OrderDto orderDto = re.getBody().getOrderDto();
+        assertThat(orderDto.getRider(), equalTo(rider));
+        assertThat(orderDto.getDeliveryStatus(), equalTo(DeliveryStatus.FETCHING.toString()));
+        assertThat(orderDto.getAcceptedAt(), notNullValue());
+    }
+
+    @Test
+    void testRiderAcceptOrderInvalidOrderAlreadyAccepted() {
+        rider.setRiderStatus(RiderStatus.FETCHING.toString());
+        Authentication auth = setUpUserMockAuth(rider);
+        order1.setDeliveryStatus(DeliveryStatus.FETCHING.toString());
+
+        ResponseEntity<AcceptOrderRE> re = ordersService.riderAcceptOrder(auth, order1.getId());
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().containsAll(Arrays.asList(
+                ErrorMsg.RIDER_NOT_FREE.toString(),
+                ErrorMsg.ORDER_ALREADY_ACCEPTED.toString()
+        )), equalTo(true));
+    }
+
+    @Test
+    void testRiderAcceptOrderInvalidOrderNotFound() {
+        Authentication auth = setUpUserMockAuth(rider);
+
+        ResponseEntity<AcceptOrderRE> re = ordersService.riderAcceptOrder(auth, -1L);
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().contains(
+                ErrorMsg.ORDER_ID_NOT_FOUND.toString()
+        ), equalTo(true));
+    }
+
+    @Test
+    void testRiderUpdateCurrentOrderStatusFetching() {
+        order1.setDeliveryStatus(DeliveryStatus.FETCHING.toString());
+        order1.setRider(rider);
+        rider.setRiderStatus(RiderStatus.FETCHING.toString());
+
+        when(ordersRepository.getOrdersByRiderEqualsAndDeliveryStatusIn(rider, Arrays.asList(
+                DeliveryStatus.FETCHING.toString(), DeliveryStatus.DELIVERING.toString()
+        ))).thenReturn(List.of(order1));
+
+        Authentication auth = setUpUserMockAuth(rider);
+
+        ResponseEntity<AcceptOrderRE> re = ordersService.riderUpdateCurrentOrderStatus(auth);
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.CREATED));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().isEmpty(), equalTo(true));
+        assertThat(order1.getDeliveryStatus(), equalTo(DeliveryStatus.DELIVERING.toString()));
+        assertThat(rider.getRiderStatus(), equalTo(RiderStatus.DELIVERING.toString()));
+    }
+
+    @Test
+    void testRiderUpdateCurrentOrderStatusDelivering() {
+        order1.setDeliveryStatus(DeliveryStatus.DELIVERING.toString());
+        order1.setRider(rider);
+        rider.setRiderStatus(RiderStatus.DELIVERING.toString());
+
+        when(ordersRepository.getOrdersByRiderEqualsAndDeliveryStatusIn(rider, Arrays.asList(
+                DeliveryStatus.FETCHING.toString(), DeliveryStatus.DELIVERING.toString()
+        ))).thenReturn(List.of(order1));
+
+        Authentication auth = setUpUserMockAuth(rider);
+
+        ResponseEntity<AcceptOrderRE> re = ordersService.riderUpdateCurrentOrderStatus(auth);
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.CREATED));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().isEmpty(), equalTo(true));
+        assertThat(order1.getDeliveryStatus(), equalTo(DeliveryStatus.DELIVERED.toString()));
+        assertThat(rider.getRiderStatus(), equalTo(RiderStatus.FREE.toString()));
+    }
+
+    @Test
+    void testRiderUpdateCurrentOrderInvalid() { // No current order
+        rider.setRiderStatus(RiderStatus.DELIVERING.toString());
+
+        when(ordersRepository.getOrdersByRiderEqualsAndDeliveryStatusIn(rider, Arrays.asList(
+                DeliveryStatus.FETCHING.toString(), DeliveryStatus.DELIVERING.toString()
+        ))).thenReturn(new ArrayList<>());
+
+        Authentication auth = setUpUserMockAuth(rider);
+
+        ResponseEntity<AcceptOrderRE> re = ordersService.riderUpdateCurrentOrderStatus(auth);
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().contains(
+                ErrorMsg.RIDER_NO_CURRENT_ORDER.toString()
+        ), equalTo(true));
+    }
+
+    @Test
+    void testCompanyRateRiderValid() {
+        Double rating = 4.0;
+
+        company.setCompanyStatus(CompanyStatus.APPROVED.toString());
+        rider.setRatingCount(1);
+        rider.setRiderRating(2.0);
+        order1.setRider(rider);
+        order1.setDeliveryStatus(DeliveryStatus.DELIVERED.toString());
+        Authentication auth = setUpUserMockAuth(company);
+
+        ResponseEntity<RatingRE> re = ordersService.companyRateRider(auth, rating, order1.getId());
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.CREATED));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().isEmpty(), equalTo(true));
+        assertThat(re.getBody().getRatingDto().getRating(), equalTo(rating));
+        assertThat(rider.getRiderRating(), equalTo(3.0)); // 3: Average of 2 and 4
+        assertThat(rider.getRatingCount(), equalTo(2));
+    }
+
+    @Test
+    void testCompanyRateRiderInvalid() {
+        Double rating = 5.1;
+
+        order1.setRider(rider);
+        order1.setDeliveryStatus(DeliveryStatus.DELIVERED.toString());
+        order1.setRiderRating(3.0);
+        Authentication auth = setUpUserMockAuth(company);
+
+        ResponseEntity<RatingRE> re = ordersService.companyRateRider(auth, rating, order1.getId());
+
+        assertThat(re.getStatusCode(), equalTo(HttpStatus.BAD_REQUEST));
+        assertThat(Objects.requireNonNull(re.getBody()).getErrors().containsAll(Arrays.asList(
+                ErrorMsg.INVALID_RATING.toString(),
+                ErrorMsg.COMPANY_NOT_APPROVED.toString(),
+                ErrorMsg.DRIVER_ALREADY_RATED_FOR_DELIVERY.toString())
+        ), equalTo(true));
+    }
+
+    private Authentication setUpUserMockAuth(User user) {
+        Authentication auth = mock(Authentication.class);
+        Set<SimpleGrantedAuthority> authorities = Collections.singleton(
+                new SimpleGrantedAuthority("ROLE_" + user.getRole()));
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                user.getUsername(), user.getPassword(), authorities
+        );
+        when(auth.getPrincipal()).thenReturn(userDetails);
+        when(usersService.getAuthUser(userDetails)).thenReturn(user);
+        return auth;
+    }
+
+    private void setUpCreateOrderTest() {
+        when(ordersRepository.save(any())).thenReturn(
+                new Order(new OrderDto(
+                        3L,
+                        company,
+                        null,
+                        "buyer",
+                        "destination",
+                        "notes",
+                        DeliveryStatus.REQUESTED.toString(),
+                        "origin",
+                        5.0,
+                        LocalDateTime.now(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        .0,
+                        .0,
+                        null
+                ))
+        );
+    }
+
+    private void setUpAcceptOrderTest(Order order, User rider) {
+        OrderDto dto = new OrderDto(order);
+        dto.setRider(rider);
+        dto.setDeliveryStatus(DeliveryStatus.FETCHING.toString());
+        dto.setAcceptedAt(LocalDateTime.now());
+        when(ordersRepository.save(any())).thenReturn(new Order(dto));
     }
 }
