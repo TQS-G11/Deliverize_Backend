@@ -40,8 +40,6 @@ public class UsersService implements UserDetailsService {
     }
 
     public User createUser(UserDto userDto) {
-
-
         return usersRepository.save(new User(userDto));
     }
 
