@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.URL;
 import tqs.g11.deliverize.model.User;
 
 @NoArgsConstructor
@@ -47,6 +48,11 @@ public class UserDto {
     @Setter
     private Integer ratingCount;
 
+    @Getter
+    @Setter
+    @URL
+    private String img;
+
     public UserDto(User user) {
         id = user.getId();
         username = user.getUsername();
@@ -57,5 +63,20 @@ public class UserDto {
         riderStatus = user.getRiderStatus();
         riderRating = user.getRiderRating();
         ratingCount = user.getRatingCount();
+        img = user.getImg();
+    }
+
+    public UserDto(Long id, String username, String name, String password, String role, String companyStatus,
+                   String riderStatus, Double riderRating, Integer ratingCount) {
+        this.id = id;
+        this.username = username;
+        this.name = name;
+        this.password = password;
+        this.role = role;
+        this.companyStatus = companyStatus;
+        this.riderStatus = riderStatus;
+        this.riderRating = riderRating;
+        this.ratingCount = ratingCount;
+        img = User.DEFAULT_IMG;
     }
 }

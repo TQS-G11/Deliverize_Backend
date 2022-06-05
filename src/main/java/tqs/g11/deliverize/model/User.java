@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.URL;
 import tqs.g11.deliverize.dto.UserDto;
 import tqs.g11.deliverize.enums.CompanyStatus;
 import tqs.g11.deliverize.enums.RiderStatus;
@@ -18,6 +19,9 @@ import java.util.Optional;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
+    public static final String DEFAULT_IMG =
+            "https://www.seekpng.com/png/detail/428-4287240_no-avatar-user-circle-icon-png.png";
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Getter
@@ -58,6 +62,11 @@ public class User {
     @Setter
     private Integer ratingCount;
 
+    @Getter
+    @Setter
+    @URL
+    private String img;
+
     public User(UserDto dto) {
         username = dto.getUsername();
         name = dto.getName();
@@ -73,11 +82,12 @@ public class User {
             riderStatus = RiderStatus.NOT_RIDER.toString();
     }
 
-    public User(String username, String name, String password, UserRoles role) {
+    public User(String username, String name, String password, UserRoles role, String img) {
         this.username = username;
         this.name = name;
         this.password = password;
         this.role = role.toString();
+        this.img = img;
         companyStatus = (role.equals(UserRoles.COMPANY) ?
                 CompanyStatus.PENDING : CompanyStatus.NOT_COMPANY).toString();
         if (role.equals(UserRoles.RIDER)) {
@@ -85,6 +95,10 @@ public class User {
             riderRating = .0;
         } else
             riderStatus = RiderStatus.NOT_RIDER.toString();
+    }
+
+    public User(String username, String name, String password, UserRoles role) {
+        this(username, name, password, role, DEFAULT_IMG);
     }
 
     public void addRiderRating(Double rating) {
