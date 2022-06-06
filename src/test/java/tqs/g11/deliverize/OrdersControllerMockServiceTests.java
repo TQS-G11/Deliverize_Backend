@@ -74,14 +74,6 @@ class OrdersControllerMockServiceTests {
 
     @SneakyThrows
     @Test
-    @WithAnonymousUser
-    void testFindOrdersUnauthenticated() {
-        mvc.perform(get("/api/deliveries").contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @SneakyThrows
-    @Test
     @WithMockUser(roles = "RIDER")
     void testFindOrdersForbidden() {
         mvc.perform(get("/api/deliveries").contentType(MediaType.APPLICATION_JSON))
