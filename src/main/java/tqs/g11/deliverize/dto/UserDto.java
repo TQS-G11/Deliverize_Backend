@@ -81,7 +81,7 @@ public class UserDto {
         this.riderStatus = riderStatus;
         this.riderRating = riderRating;
         this.ratingCount = ratingCount;
-        this.img = img == null ? User.DEFAULT_IMG : companyDescription;
+        this.img = img == null ? User.DEFAULT_IMG : img;
         this.companyDescription = companyDescription;
     }
 }
