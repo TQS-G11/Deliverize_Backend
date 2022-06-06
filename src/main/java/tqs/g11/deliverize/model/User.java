@@ -67,6 +67,10 @@ public class User {
     @URL
     private String img;
 
+    @Getter
+    @Setter
+    private String companyDescription;
+
     public User(UserDto dto) {
         username = dto.getUsername();
         name = dto.getName();
@@ -82,7 +86,7 @@ public class User {
             riderStatus = RiderStatus.NOT_RIDER.toString();
     }
 
-    public User(String username, String name, String password, UserRoles role, String img) {
+    public User(String username, String name, String password, UserRoles role, String img, String companyDescription) {
         this.username = username;
         this.name = name;
         this.password = password;
@@ -93,12 +97,14 @@ public class User {
         if (role.equals(UserRoles.RIDER)) {
             riderStatus = RiderStatus.FREE.toString();
             riderRating = .0;
+        } else if (role.equals(UserRoles.COMPANY)) {
+            this.companyDescription = companyDescription == null ? "" : companyDescription;
         } else
             riderStatus = RiderStatus.NOT_RIDER.toString();
     }
 
     public User(String username, String name, String password, UserRoles role) {
-        this(username, name, password, role, DEFAULT_IMG);
+        this(username, name, password, role, DEFAULT_IMG, null);
     }
 
     public void addRiderRating(Double rating) {
