@@ -9,7 +9,6 @@ import org.hibernate.validator.constraints.URL;
 import tqs.g11.deliverize.model.User;
 
 @NoArgsConstructor
-@AllArgsConstructor
 public class UserDto {
     @Getter
     @Setter
@@ -53,6 +52,10 @@ public class UserDto {
     @URL
     private String img;
 
+    @Getter
+    @Setter
+    private String companyDescription;
+
     public UserDto(User user) {
         id = user.getId();
         username = user.getUsername();
@@ -64,10 +67,11 @@ public class UserDto {
         riderRating = user.getRiderRating();
         ratingCount = user.getRatingCount();
         img = user.getImg();
+        companyDescription = user.getCompanyDescription();
     }
 
     public UserDto(Long id, String username, String name, String password, String role, String companyStatus,
-                   String riderStatus, Double riderRating, Integer ratingCount) {
+                   String riderStatus, Double riderRating, Integer ratingCount, String img, String companyDescription) {
         this.id = id;
         this.username = username;
         this.name = name;
@@ -77,6 +81,7 @@ public class UserDto {
         this.riderStatus = riderStatus;
         this.riderRating = riderRating;
         this.ratingCount = ratingCount;
-        img = User.DEFAULT_IMG;
+        this.img = img == null ? User.DEFAULT_IMG : companyDescription;
+        this.companyDescription = companyDescription;
     }
 }

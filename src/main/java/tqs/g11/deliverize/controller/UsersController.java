@@ -19,6 +19,7 @@ import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.service.UsersService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin("*")
@@ -113,5 +114,20 @@ public class UsersController {
     @GetMapping("")
     public List<User> findUsersByRole(String role) {
         return usersService.findUsersByRole(role);
+    }
+
+    @Operation(summary = "As a manager, access a user's details.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User details found."),
+            @ApiResponse(responseCode = "401", description = "Unauthenticated."),
+            @ApiResponse(responseCode = "403", description = "Unauthorized (not a manager)."),
+            @ApiResponse(responseCode = "404", description = "No user with provided ID found.")
+    })
+    @PreAuthorize("hasAnyRole('MANAGER')")
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        Optional<User> user = usersService.getUserById(id);
+        return user.map(value -> ResponseEntity.ok().body(value))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
 }
