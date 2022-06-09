@@ -41,7 +41,7 @@ services:
   #    - ./target/api.war:/usr/local/tomcat/webapps/api.war
 
   deliverize_app:
-    container_name: zap_backend
+    container_name: deliverize_backend
     image: maven-app:latest
     build: 
       context: .
