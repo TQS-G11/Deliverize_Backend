@@ -61,7 +61,7 @@ services:
       - spring.jpa.hibernate.ddl-auto=update
       - sonar.projectKey=TQS-G11_Deliverize_Backend
       - sonar.organization=tqs-g11
-      - sonar.login=$${{ secrets.SONAR_TOKEN }}
+  #   - sonar.login=$${{ secrets.SONAR_TOKEN }}
       - sonar.projectName=Deliverize_Backend
       - sonar.verbose=true
     healthcheck:
