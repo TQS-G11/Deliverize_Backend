@@ -52,7 +52,7 @@ services:
       deliverize_db:
         condition: service_healthy
 
-    command: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=TQS-G11_Deliverize_Backend
+    command: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=TQS-G11_Deliverize_Backend -Dsonar.organization=tqs-g11 -Dsonar.projectName=Deliverize_Backend -Dsonar.verbose=true
     environment:
       - spring.datasource.url=jdbc:mysql://deliverize_db:3306/mysql
       - spring.datasource.username=root
