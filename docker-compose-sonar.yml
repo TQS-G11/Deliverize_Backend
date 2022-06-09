@@ -59,7 +59,7 @@ services:
       - spring.datasource.password=root
       - spring.jpa.database-platform=org.hibernate.dialect.MySQL5InnoDBDialect
       - spring.jpa.hibernate.ddl-auto=update
-      - sonar.projectKey=TQS-G11_Zap_Backend
+      - sonar.projectKey=TQS-G11_Deliverize_Backend
       - sonar.organization=tqs-g11
     healthcheck:
       test: "curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1"
