@@ -8,6 +8,7 @@ import tqs.g11.deliverize.model.Order;
 import tqs.g11.deliverize.model.User;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -41,4 +42,6 @@ public interface OrdersRepository extends JpaRepository<Order, Long> {
             @Param("acceptedAt") LocalDateTime acceptedAt,
             @Param("deliveredAt") LocalDateTime deliveredAt
     );
+
+    List<Order> getOrdersByRiderEqualsAndDeliveryStatusIn(User rider, Collection<String> statuses);
 }

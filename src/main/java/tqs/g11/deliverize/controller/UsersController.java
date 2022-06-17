@@ -1,5 +1,8 @@
 package tqs.g11.deliverize.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +19,7 @@ import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.service.UsersService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -27,6 +31,17 @@ public class UsersController {
 
     private final TokenProvider jwtTokenUtil;
 
+    public UsersController(UsersService usersService, AuthenticationManager authManager, TokenProvider jwtTokenUtil) {
+        this.usersService = usersService;
+        this.authManager = authManager;
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
+
+    @Operation(summary = "Create a user (COMPANY/MANAGER/RIDER).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "User created."),
+            @ApiResponse(responseCode = "400", description = "User not created (invalid request).")
+    })
     @PostMapping("signup")
     public ResponseEntity<SignupRE> signup(@RequestBody UserDto userDto) {
         SignupRE re = new SignupRE();
@@ -49,6 +64,11 @@ public class UsersController {
             return ResponseEntity.badRequest().body(re);
     }
 
+    @Operation(summary = "Get a user's authentication token through their credentials.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Authentication successful, token provided."),
+            @ApiResponse(responseCode = "400", description = "Authentication unsuccessful.")
+    })
     @PostMapping("login")
     public ResponseEntity<LoginRE> login(@RequestBody LoginUser loginUser) {
         LoginRE re = new LoginRE();
@@ -71,21 +91,43 @@ public class UsersController {
         }
     }
 
+    @Operation(summary = "As a manager, alter the status of a company (APPROVED/BLACKLISTED).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Company status altered."),
+            @ApiResponse(responseCode = "400", description = "Company status unaltered (invalid request)."),
+            @ApiResponse(responseCode = "401", description = "Unauthenticated."),
+            @ApiResponse(responseCode = "403", description = "Unauthorized (not a manager).")
+    })
     @PreAuthorize("hasAnyRole('MANAGER')")
     @PostMapping("change-company-status")
     public ResponseEntity<ChangeCompanyStatusRE> managerChangeCompanyStatus(@RequestBody UserDto companyDto) {
         return usersService.managerChangeCompanyStatus(companyDto);
     }
 
-    public UsersController(UsersService usersService, AuthenticationManager authManager, TokenProvider jwtTokenUtil) {
-        this.usersService = usersService;
-        this.authManager = authManager;
-        this.jwtTokenUtil = jwtTokenUtil;
-    }
-
+    @Operation(summary = "As a manager, find users with a specific role (COMPANY/MANAGER/RIDER).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Relevant users found."),
+            @ApiResponse(responseCode = "401", description = "Unauthenticated."),
+            @ApiResponse(responseCode = "403", description = "Unauthorized (not a manager).")
+    })
     @PreAuthorize("hasAnyRole('MANAGER')")
     @GetMapping("")
     public List<User> findUsersByRole(String role) {
         return usersService.findUsersByRole(role);
+    }
+
+    @Operation(summary = "As a manager, access a user's details.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User details found."),
+            @ApiResponse(responseCode = "401", description = "Unauthenticated."),
+            @ApiResponse(responseCode = "403", description = "Unauthorized (not a manager)."),
+            @ApiResponse(responseCode = "404", description = "No user with provided ID found.")
+    })
+    @PreAuthorize("hasAnyRole('MANAGER')")
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        Optional<User> user = usersService.getUserById(id);
+        return user.map(value -> ResponseEntity.ok().body(value))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
 }

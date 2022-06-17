@@ -1,13 +1,14 @@
 package tqs.g11.deliverize.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.URL;
 import tqs.g11.deliverize.model.User;
 
 @NoArgsConstructor
-@AllArgsConstructor
 public class UserDto {
     @Getter
     @Setter
@@ -23,6 +24,7 @@ public class UserDto {
 
     @Getter
     @Setter
+    @JsonIgnoreProperties
     private String password;
 
     @Getter
@@ -45,6 +47,15 @@ public class UserDto {
     @Setter
     private Integer ratingCount;
 
+    @Getter
+    @Setter
+    @URL
+    private String img;
+
+    @Getter
+    @Setter
+    private String companyDescription;
+
     public UserDto(User user) {
         id = user.getId();
         username = user.getUsername();
@@ -55,5 +66,22 @@ public class UserDto {
         riderStatus = user.getRiderStatus();
         riderRating = user.getRiderRating();
         ratingCount = user.getRatingCount();
+        img = user.getImg();
+        companyDescription = user.getCompanyDescription();
+    }
+
+    public UserDto(Long id, String username, String name, String password, String role, String companyStatus,
+                   String riderStatus, Double riderRating, Integer ratingCount, String img, String companyDescription) {
+        this.id = id;
+        this.username = username;
+        this.name = name;
+        this.password = password;
+        this.role = role;
+        this.companyStatus = companyStatus;
+        this.riderStatus = riderStatus;
+        this.riderRating = riderRating;
+        this.ratingCount = ratingCount;
+        this.img = img == null ? User.DEFAULT_IMG : img;
+        this.companyDescription = companyDescription;
     }
 }

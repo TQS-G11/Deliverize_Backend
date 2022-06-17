@@ -55,7 +55,7 @@ class UsersServiceTests {
         Mockito.when(repo.findAll()).thenReturn(users);
 
         newUserDto = new UserDto(42L, "newuser", "New User", "newpassword", UserRoles.RIDER.toString(),
-                CompanyStatus.NOT_COMPANY.toString(), RiderStatus.FREE.toString(), 5.0, 0);
+                CompanyStatus.NOT_COMPANY.toString(), RiderStatus.FREE.toString(), 5.0, 0, null, null);
         newUser = new User(newUserDto);
         Mockito.when(repo.save(newUser)).thenReturn(newUser);
     }

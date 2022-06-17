@@ -23,7 +23,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build and Run Tests
-      run: docker-compose -f "docker_compose_test.yml" up --build  --exit-code-from app
+      run: docker-compose -f "docker_compose_test.yml" up --build  --exit-code-from deliverize_app
     - name: Stop containers
       if: always()
       run: docker-compose down
