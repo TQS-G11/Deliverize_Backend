@@ -11,14 +11,14 @@ import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrdersRE {
+public class OrderRE {
     @Getter
     @Setter
     private List<String> errors = new ArrayList<>();
 
     @Getter
     @Setter
-    private List<Order> orders = new ArrayList<>();
+    private Order order;
 
     public void addError(String error) {
         errors.add(error);

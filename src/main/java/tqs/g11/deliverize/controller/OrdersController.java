@@ -100,4 +100,33 @@ public class OrdersController {
                                               @RequestAttribute Long orderId) {
         return ordersService.companyRateRider(auth, rating, orderId);
     }
+
+    @Operation(summary = "Get a Order by its ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Order obtained."),
+            @ApiResponse(responseCode = "400", description = "Requested Order Id does not exist (invalid request)."),
+            @ApiResponse(responseCode = "401", description = "Unauthenticated."),
+            @ApiResponse(responseCode = "403", description = "Unauthorized (not a company).")
+    })
+    @GetMapping("/{delivery_id}")
+    @PreAuthorize("hasAnyRole('COMPANY')")
+    public ResponseEntity<OrderRE> getDeliveryByID(Authentication auth, @PathVariable("delivery_id") Long deliveryId) {
+        System.out.println("Sussy delivery id");
+        return ordersService.getOrderById(deliveryId);
+    }
+
+    @Operation(summary = "Get the Orders made by a Company User")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Orders obtained."),
+            @ApiResponse(responseCode = "400", description = "Rating not saved (invalid request)."),
+            @ApiResponse(responseCode = "401", description = "Unauthenticated."),
+            @ApiResponse(responseCode = "403", description = "Unauthorized (not a company).")
+    })
+    @GetMapping("/company/buyer/{buyer}")
+    @PreAuthorize("hasAnyRole('COMPANY')")
+    public ResponseEntity<OrdersRE> getDeliveryByCompanyUser(Authentication auth, @PathVariable String buyer) {
+//        return ordersService.getOrderById(deliveryId);
+        System.out.println("Sussy delivery by buyer");
+        return ordersService.getOrdersByBuyer(auth, buyer);
+    }
 }

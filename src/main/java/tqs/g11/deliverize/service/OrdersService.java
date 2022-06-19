@@ -170,6 +170,31 @@ public class OrdersService {
         return ResponseEntity.badRequest().body(re);
     }
 
+    public ResponseEntity<OrderRE> getOrderById(Long id) {
+        OrderRE re = new OrderRE();
+        Optional<Order> orderOptional = ordersRepository.findById(id);
+        if (orderOptional.isEmpty()) {
+            re.addError(ErrorMsg.ORDER_ID_NOT_FOUND.toString());
+        }
+
+        if (!re.hasErrors()) {
+            re.setOrder(orderOptional.get());
+            return ResponseEntity.status(HttpStatus.OK).body(re);
+        }
+
+        return ResponseEntity.badRequest().body(re);
+
+    }
+
+    public ResponseEntity<OrdersRE> getOrdersByBuyer(Authentication auth, String buyer) {
+        User company = usersService.getAuthUser((UserDetails) auth.getPrincipal());
+
+        ResponseEntity<OrdersRE> re = managerFindOrders(null, company.getId(), null, buyer, null,
+                null, null, null, null, null, null, null);
+
+        return re;
+    }
+
     private Order findOrderById(Long id) {
         ResponseEntity<OrdersRE> ordersRE = managerFindOrders(id, null, null, null, null,
                 null, null, null, null, null, null, null);
