@@ -4,3 +4,4 @@ COPY . /app
 RUN apk add curl
 
 WORKDIR /app 
+ 
