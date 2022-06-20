@@ -40,14 +40,13 @@ jobs:
           java-version: 11
      
       - name: Run commands
-        uses: appleboy/ssh-action@master
+        uses: fifsky/ssh-action@master
         with:
           host: ${{ secrets.MACHINE_IP }}       
-          username: inryatt 
+          user: inryatt 
           key: ${{ secrets.AZURE_SSH_KEY }}
           port: 22
-          debug: true
-          script: |
+          command: |
             cd ~
             docker-compose down
             git pull
