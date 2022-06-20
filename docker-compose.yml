@@ -24,7 +24,7 @@ services:
       - dbdata:/var/lib/mysql
     networks:
       - i_hate_this
-
+ 
   #db_init:
   #   depends_on:
   #     api:
