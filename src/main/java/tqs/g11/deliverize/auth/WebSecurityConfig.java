@@ -59,13 +59,25 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/api/deliveries/rider/accept",
                         "/api/deliveries/rider/update",
                         "/api/deliveries/company/rate-rider",
-                        "/api/test"
+                        "/api/test",
+
+                        "/swagger-ui.html",
+                        "/swagger-ui.html/**",
+                        "/configuration/**",
+                        "/swagger-resources/**",
+                        "/v2/api-docs",
+                        "/webjars/**",
+                        "/**"
                 )
                 .permitAll()
-                .anyRequest().authenticated()
+                .anyRequest()
+                .authenticated()
                 .and()
-                .exceptionHandling().authenticationEntryPoint(unauthorizedEntryPoint).and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .exceptionHandling()
+                .authenticationEntryPoint(unauthorizedEntryPoint)
+                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
     }
