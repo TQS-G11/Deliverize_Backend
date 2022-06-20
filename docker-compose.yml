@@ -21,7 +21,7 @@ services:
     expose:
       - '3307'
     volumes:
-      - ./.docker-volumes/mysql/db_data:/var/lib/mysql
+      - dbdata:/var/lib/mysql
     networks:
       - i_hate_this
 
@@ -66,11 +66,12 @@ services:
       interval: 20s
       timeout: 5s
       retries: 5
-    volumes:
-      - ./.docker-volumes/deliverize_app/target/:/app/target
+   
     networks:
       - i_hate_this
-
+volumes:
+  dbdata:
+    driver: local
 networks:
   i_hate_this:
     driver: bridge
