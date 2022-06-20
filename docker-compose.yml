@@ -11,7 +11,7 @@ services:
         MYSQL_USER: 'user'
         MYSQL_DB: 'deliverize'
     healthcheck:
-      test: ["CMD-SHELL", 'mysqladmin ping']
+      test: ["CMD-SHELL", 'mysqladmin ping'] 
       interval: 10s
       timeout: 2s
       retries: 3
