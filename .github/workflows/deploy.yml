@@ -43,7 +43,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.MACHINE_IP }}       
-          username: ${{ secrets.SSH_USERNAME }}     
+          username: inryatt 
           key: ${{ secrets.AZURE_SSH_KEY }}
           port: 22
           debug: true
