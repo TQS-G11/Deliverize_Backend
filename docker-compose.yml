@@ -3,7 +3,7 @@ services:
   deliverize_db:
     image: mysql
     container_name: deliverize_db
-    #restart: always
+    #restart: always 
     environment:
         DB_SERVER_PORT: 3306
         MYSQL_ROOT_PASSWORD: root
