@@ -47,7 +47,7 @@ jobs:
           key: ${{ secrets.AZURE_SSH_KEY }}
           port: 22
           command: |
-            cd ~
+            cd ~/Deliverize_Backend
             docker-compose down
             git pull
             docker-compose up --build
