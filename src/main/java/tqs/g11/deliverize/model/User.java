@@ -1,10 +1,7 @@
 package tqs.g11.deliverize.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.validator.constraints.URL;
 import tqs.g11.deliverize.dto.UserDto;
 import tqs.g11.deliverize.enums.CompanyStatus;
@@ -12,6 +9,7 @@ import tqs.g11.deliverize.enums.RiderStatus;
 import tqs.g11.deliverize.enums.UserRoles;
 
 import javax.persistence.*;
+import java.util.Objects;
 import java.util.Optional;
 
 @Entity
@@ -70,6 +68,19 @@ public class User {
     @Getter
     @Setter
     private String companyDescription;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
     public User(UserDto dto) {
         username = dto.getUsername();
