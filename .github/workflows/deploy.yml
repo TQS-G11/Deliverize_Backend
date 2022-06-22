@@ -1,4 +1,4 @@
-#AAAAAAAAAAA
+#AAAAAAAAAAAA 
 name: deploy
 
 on: 
@@ -40,14 +40,14 @@ jobs:
           java-version: 11
      
       - name: Run commands
-        uses: appleboy/ssh-action@master
+        uses: fifsky/ssh-action@master
         with:
           host: ${{ secrets.MACHINE_IP }}       
-          username: ${{ secrets.API_USERNAME }}     
+          user: inryatt 
           key: ${{ secrets.AZURE_SSH_KEY }}
           port: 22
-          script: |
-            cd ~
+          command: |
+            cd ~/Deliverize_Backend
             docker-compose down
             git pull
-            docker-compose up --build
+            docker-compose up --build -d
