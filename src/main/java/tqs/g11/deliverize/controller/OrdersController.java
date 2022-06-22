@@ -29,7 +29,7 @@ public class OrdersController {
             @ApiResponse(responseCode = "403", description = "Unauthorized (not a manager).")
     })
     @GetMapping()
-    @PreAuthorize("hasAnyRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER','RIDER')")
     public ResponseEntity<OrdersRE> findOrders(
             Long id,
             Long companyId,
