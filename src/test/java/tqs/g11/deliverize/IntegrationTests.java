@@ -1,7 +1,6 @@
 package tqs.g11.deliverize;
 
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -14,9 +13,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.DefaultResponseErrorHandler;
 import tqs.g11.deliverize.dto.*;
 import tqs.g11.deliverize.enums.CompanyStatus;
 import tqs.g11.deliverize.enums.UserRoles;
@@ -24,10 +20,7 @@ import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.repository.UsersRepository;
 import tqs.g11.deliverize.service.UsersService;
 
-import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class UsersControllerIntegrationTests {
+class IntegrationTests {
     private static final String AUTH_HEADER_PATTERN = "Bearer {0}";
 
     @LocalServerPort
@@ -53,14 +46,19 @@ class UsersControllerIntegrationTests {
 
     private User company1 = new User("company1", "Company 1", "company1password", UserRoles.COMPANY);
 
+    private User company2 = new User("company2", "Company 2", "company2password", UserRoles.COMPANY);
+
     private User manager1 = new User("manager1", "Manager 1", "manager1password", UserRoles.MANAGER);
 
     private User rider1 = new User("rider1", "Rider 1", "rider1password", UserRoles.RIDER);
+
 
     {
         company1.setId(1L);
         manager1.setId(2L);
         rider1.setId(3L);
+        company2.setId(4L);
+        company2.setCompanyStatus(CompanyStatus.APPROVED.toString());
     }
 
     @Test
@@ -80,6 +78,8 @@ class UsersControllerIntegrationTests {
         response = restTemplate.postForEntity("/api/users/signup", newUser, SignupRE.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(usersRepository.findAll()).extracting(User::getUsername).contains(rider1.getUsername());
+
+        usersRepository.save(company2);
     }
 
     @Test
@@ -196,6 +196,85 @@ class UsersControllerIntegrationTests {
         );
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
+
+
+    @Test
+    @Order(10)
+    void companyCreateOrderValid() {
+        final String destination = "Kaer Morhen";
+        final String buyer = "Geralt of Rivia";
+        final String origin = "Zap Novigrad";
+        OrderDto orderDto = new OrderDto();
+        orderDto.setBuyer(buyer);
+        orderDto.setDestination(destination);
+        orderDto.setOrigin(origin);
+
+        HttpEntity<OrderDto> entity = new HttpEntity<>(orderDto, getUserHeadersWithAuth(company2));
+
+        ResponseEntity<CreateOrderRE> response = restTemplate.postForEntity(
+                "/api/deliveries/company",
+                entity,
+                CreateOrderRE.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(Objects.requireNonNull(response.getBody()).getErrors()).isEmpty();
+        assertThat(response.getBody().getOrderDto().getCompany()).isEqualTo(company2);
+    }
+
+    @Test
+    @Order(11)
+    void managerFindOrdersValid() {
+        HttpEntity<UserDto> entity = new HttpEntity<>(null, getUserHeadersWithAuth(manager1));
+        ResponseEntity<OrdersRE> response = restTemplate.exchange(
+                "/api/deliveries",
+                HttpMethod.GET,
+                entity,
+                OrdersRE.class
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(Objects.requireNonNull(response.getBody()).getErrors()).isEmpty();
+        assertThat(response.getBody().getOrders()).hasSize(1);
+    }
+
+    @Test
+    @Order(12)
+    void riderAcceptOrderValid() {
+        HttpEntity<Long> entity = new HttpEntity<>(5L, getUserHeadersWithAuth(rider1));
+        ResponseEntity<AcceptOrderRE> response = restTemplate.postForEntity(
+                "/api/deliveries/rider/accept",
+                entity,
+                AcceptOrderRE.class
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    }
+
+    @Test
+    @Order(13)
+    void riderUpdateOrderValid() {
+        HttpEntity<Long> entity = new HttpEntity<>(null, getUserHeadersWithAuth(rider1));
+        ResponseEntity<AcceptOrderRE> response = restTemplate.postForEntity(
+                "/api/deliveries/rider/update",
+                entity,
+                AcceptOrderRE.class
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    }
+
+    @Test
+    @Order(14)
+    void getDeliveryByCompanyUserValid() {
+        HttpEntity<UserDto> entity = new HttpEntity<>(null, getUserHeadersWithAuth(company2));
+        ResponseEntity<OrdersRE> response = restTemplate.exchange(
+                "/api/deliveries/company/buyer/{buyer}",
+                HttpMethod.GET,
+                entity,
+                OrdersRE.class,
+                "Geralt of Rivia"
+        );
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
 
     private String getUserAuthToken(User user) {
         LoginUser loginUser = new LoginUser(user.getUsername(), user.getPassword());

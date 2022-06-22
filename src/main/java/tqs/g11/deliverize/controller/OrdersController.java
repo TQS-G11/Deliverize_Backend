@@ -111,7 +111,6 @@ public class OrdersController {
     @GetMapping("/{delivery_id}")
     @PreAuthorize("hasAnyRole('COMPANY')")
     public ResponseEntity<OrderRE> getDeliveryByID(Authentication auth, @PathVariable("delivery_id") Long deliveryId) {
-        System.out.println("Sussy delivery id");
         return ordersService.getOrderById(deliveryId);
     }
 
@@ -125,8 +124,6 @@ public class OrdersController {
     @GetMapping("/company/buyer/{buyer}")
     @PreAuthorize("hasAnyRole('COMPANY')")
     public ResponseEntity<OrdersRE> getDeliveryByCompanyUser(Authentication auth, @PathVariable String buyer) {
-//        return ordersService.getOrderById(deliveryId);
-        System.out.println("Sussy delivery by buyer");
         return ordersService.getOrdersByBuyer(auth, buyer);
     }
 }
