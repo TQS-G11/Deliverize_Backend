@@ -16,10 +16,7 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import tqs.g11.deliverize.auth.TokenProvider;
 import tqs.g11.deliverize.auth.UnauthorizedEntryPoint;
 import tqs.g11.deliverize.controller.OrdersController;
-import tqs.g11.deliverize.dto.AcceptOrderRE;
-import tqs.g11.deliverize.dto.CreateOrderRE;
-import tqs.g11.deliverize.dto.OrderDto;
-import tqs.g11.deliverize.dto.OrdersRE;
+import tqs.g11.deliverize.dto.*;
 import tqs.g11.deliverize.service.OrdersService;
 import tqs.g11.deliverize.service.UsersService;
 
@@ -69,7 +66,7 @@ class OrdersControllerMockServiceTests {
 
     @SneakyThrows
     @Test
-    @WithMockUser(roles = "RIDER")
+    @WithMockUser(roles = "COMPANY")
     void testFindOrdersForbidden() {
         mvc.perform(get("/api/deliveries").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
@@ -120,7 +117,7 @@ class OrdersControllerMockServiceTests {
     @Test
     @WithMockUser(roles = "RIDER")
     void testAcceptOrderOk() {
-        String content = objectMapper.writeValueAsString(1L);
+        String content = objectMapper.writeValueAsString(new OrderIdDto(1L));
         mvc.perform(post("/api/deliveries/rider/accept")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
