@@ -1,3 +1,4 @@
+from email import contentmanager
 import requests
 
 url = "http://localhost:8082/api"
@@ -148,15 +149,14 @@ def main():
     i = 11
 
     for rider in riders:
-        logi = requests.post(login_url, json = companies[0])
+        logi = requests.post(login_url, json = rider)
         rider_token = logi.json()['token']['token']
+        print(f"{rider_token = }")
         headers = {
             "Authorization": f"Bearer {rider_token}"
         }
-        content = {
-            "orderId": i
-        }
-        x = requests.post(rider_url, data = i, headers = headers)
+        content = {"orderId": i}
+        x = requests.post(rider_url, json = content, headers = headers)
         print(f"{i}: {x.text}")
         i += 1
 
