@@ -1,0 +1,53 @@
+#AAAAAAAAAAAA 
+name: deploy
+
+on: 
+  push:
+    branches: main
+  pull_request:
+    branches: [main,dev]
+    
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    services:
+      # Label used to access the service container
+      mysql:
+        # Docker Hub image
+        image: mysql:latest
+        ports:
+          - 3306:3306
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Build and Test
+        run: docker-compose -f "docker_compose_test.yml" up --build  --exit-code-from deliverize_app
+   
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+     
+      - name: Run commands
+        uses: fifsky/ssh-action@master
+        with:
+          host: ${{ secrets.MACHINE_IP }}       
+          user: inryatt 
+          key: ${{ secrets.AZURE_SSH_KEY }}
+          port: 22
+          command: |
+            cd ~/Deliverize_Backend
+            docker-compose down
+            git pull
+            docker-compose up --build -d
