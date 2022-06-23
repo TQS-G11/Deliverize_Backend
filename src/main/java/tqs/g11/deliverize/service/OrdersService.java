@@ -135,6 +135,7 @@ public class OrdersService {
             order.setDeliveryStatus(DeliveryStatus.DELIVERING.toString());
         } else if (order.getDeliveryStatus().equals(DeliveryStatus.DELIVERING.toString())) {
             order.setDeliveryStatus(DeliveryStatus.DELIVERED.toString());
+            order.setDeliveredAt(LocalDateTime.now());
         }
         usersService.updateRiderStatus(rider);
 
