@@ -11,6 +11,7 @@ import tqs.g11.deliverize.dto.ChangeCompanyStatusRE;
 import tqs.g11.deliverize.dto.UserDto;
 import tqs.g11.deliverize.enums.CompanyStatus;
 import tqs.g11.deliverize.enums.ErrorMsg;
+import tqs.g11.deliverize.enums.RiderStatus;
 import tqs.g11.deliverize.model.User;
 import tqs.g11.deliverize.repository.UsersRepository;
 
@@ -75,6 +76,19 @@ public class UsersService implements UserDetailsService {
         }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(re);
+    }
+
+    public User updateRiderStatus(User rider) {
+        String riderStatus = rider.getRiderStatus();
+        if (riderStatus.equals(RiderStatus.NOT_RIDER.toString()))
+            return null;
+        else if (riderStatus.equals(RiderStatus.FREE.toString()))
+            rider.setRiderStatus(RiderStatus.FETCHING.toString());
+        else if (riderStatus.equals(RiderStatus.FETCHING.toString()))
+            rider.setRiderStatus(RiderStatus.DELIVERING.toString());
+        else if (riderStatus.equals(RiderStatus.DELIVERING.toString()))
+            rider.setRiderStatus(RiderStatus.FREE.toString());
+        return usersRepository.save(rider);
     }
 
     private Set<SimpleGrantedAuthority> getAuthority(User user) {

@@ -245,7 +245,6 @@ class OrdersServiceTests {
         assertThat(re.getStatusCode(), equalTo(HttpStatus.CREATED));
         assertThat(Objects.requireNonNull(re.getBody()).getErrors().isEmpty(), equalTo(true));
         assertThat(order1.getDeliveryStatus(), equalTo(DeliveryStatus.DELIVERING.toString()));
-        assertThat(rider.getRiderStatus(), equalTo(RiderStatus.DELIVERING.toString()));
     }
 
     @Test
@@ -265,7 +264,6 @@ class OrdersServiceTests {
         assertThat(re.getStatusCode(), equalTo(HttpStatus.CREATED));
         assertThat(Objects.requireNonNull(re.getBody()).getErrors().isEmpty(), equalTo(true));
         assertThat(order1.getDeliveryStatus(), equalTo(DeliveryStatus.DELIVERED.toString()));
-        assertThat(rider.getRiderStatus(), equalTo(RiderStatus.FREE.toString()));
     }
 
     @Test
