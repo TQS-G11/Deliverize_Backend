@@ -111,7 +111,7 @@ public class OrdersService {
             order.setDeliveryStatus(DeliveryStatus.FETCHING.toString());
             order.setAcceptedAt(LocalDateTime.now());
             ordersRepository.save(order);
-            rider.setRiderStatus(RiderStatus.FETCHING.toString());
+            usersService.updateRiderStatus(rider);
             re.setOrderDto(new OrderDto(order));
             return ResponseEntity.status(HttpStatus.CREATED).body(re);
         }
@@ -133,11 +133,15 @@ public class OrdersService {
 
         if (order.getDeliveryStatus().equals(DeliveryStatus.FETCHING.toString())) {
             order.setDeliveryStatus(DeliveryStatus.DELIVERING.toString());
-            rider.setRiderStatus(RiderStatus.DELIVERING.toString());
         } else if (order.getDeliveryStatus().equals(DeliveryStatus.DELIVERING.toString())) {
             order.setDeliveryStatus(DeliveryStatus.DELIVERED.toString());
-            rider.setRiderStatus(RiderStatus.FREE.toString());
+            order.setDeliveredAt(LocalDateTime.now());
         }
+        usersService.updateRiderStatus(rider);
+
+        ordersRepository.save(order);
+
+        re.setOrderDto(new OrderDto(order));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(re);
     }
@@ -189,10 +193,8 @@ public class OrdersService {
     public ResponseEntity<OrdersRE> getOrdersByBuyer(Authentication auth, String buyer) {
         User company = usersService.getAuthUser((UserDetails) auth.getPrincipal());
 
-        ResponseEntity<OrdersRE> re = managerFindOrders(null, company.getId(), null, buyer, null,
+        return managerFindOrders(null, company.getId(), null, buyer, null,
                 null, null, null, null, null, null, null);
-
-        return re;
     }
 
     private Order findOrderById(Long id) {
